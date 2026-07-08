@@ -530,6 +530,115 @@ p { line-height: 1.7; }
   background: #fff1cf;
 }
 
+.term-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 3px;
+  padding: 5px 12px 6px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--cream);
+  background: var(--green);
+  font-family: var(--display-font);
+  font-size: 17px;
+  line-height: 1.1;
+  vertical-align: baseline;
+  box-shadow: 0 3px 0 rgba(18, 52, 44, .24);
+  cursor: help;
+}
+
+.term-help.queue {
+  background: var(--blue);
+}
+
+.term-help::after {
+  content: "?";
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: var(--board-dark);
+  background: var(--yellow);
+  font-family: var(--display-font);
+  font-size: 13px;
+}
+
+.term-help:focus-visible {
+  outline: 4px solid rgba(255, 217, 79, .72);
+  outline-offset: 3px;
+}
+
+.concept-popover {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 14px);
+  z-index: 30;
+  width: min(340px, calc(100vw - 42px));
+  padding: 15px;
+  border: 4px solid var(--board);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fff8ea;
+  box-shadow: 0 16px 34px rgba(73, 45, 18, .24);
+  font-family: var(--body-font);
+  text-align: left;
+  transform: translate(-50%, 8px) scale(.98);
+  transform-origin: bottom center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+}
+
+.concept-popover::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -13px;
+  width: 18px;
+  height: 18px;
+  border-right: 4px solid var(--board);
+  border-bottom: 4px solid var(--board);
+  background: #fff8ea;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.term-help:hover .concept-popover,
+.term-help:focus .concept-popover,
+.term-help:focus-visible .concept-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.concept-popover strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--board);
+  font-family: var(--display-font);
+  font-size: 21px;
+}
+
+.concept-popover span {
+  display: block;
+  color: #4f493f;
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.concept-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 10px;
+  border-radius: 10px;
+  background: var(--board);
+}
+
 .path-board, .level-board {
   min-height: 360px;
   padding: 28px;
@@ -993,4 +1102,22 @@ p { line-height: 1.7; }
   .tree-zone { min-height: 360px; }
   #treeSvg, #dfsGuideSvg, #bfsGuideSvg { height: 360px; }
   .guide-head, .quiz-header { align-items: stretch; flex-direction: column; }
+  .concept-popover {
+    left: 0;
+    bottom: auto;
+    top: calc(100% + 14px);
+    transform: translate(0, -8px) scale(.98);
+    transform-origin: top left;
+  }
+  .concept-popover::after {
+    left: 26px;
+    top: -13px;
+    bottom: auto;
+    transform: rotate(225deg);
+  }
+  .term-help:hover .concept-popover,
+  .term-help:focus .concept-popover,
+  .term-help:focus-visible .concept-popover {
+    transform: translate(0, 0) scale(1);
+  }
 }
