@@ -998,13 +998,31 @@ p { line-height: 1.7; }
   background: rgba(255, 248, 234, .75);
 }
 
-.structure-history div {
+.structure-history button {
   display: grid;
   gap: 2px;
+  width: 100%;
   padding: 7px 9px;
+  border: 0;
   border-left: 5px solid var(--green);
   border-radius: 8px;
+  color: #40382d;
   background: #fff1cf;
+  text-align: left;
+  cursor: pointer;
+}
+
+.structure-history button.is-active {
+  outline: 3px solid rgba(255, 211, 74, .9);
+  background: #fff8ea;
+}
+
+.structure-history button.is-correct {
+  border-left-color: var(--mint);
+}
+
+.structure-history button.is-wrong {
+  border-left-color: var(--coral);
 }
 
 .structure-history b {
@@ -1018,6 +1036,17 @@ p { line-height: 1.7; }
   color: #4b443a;
   font-size: 13px;
   font-weight: 850;
+}
+
+.structure-history em {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--cream);
+  background: var(--board);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .feedback {

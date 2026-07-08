@@ -47,9 +47,9 @@ const challengeState = {
   mode: "dfs",
   selected: [],
   showAnswer: false,
-  structureGuess: [],
   structurePending: false,
-  structureHistory: [],
+  structureSteps: [],
+  activeStructureIndex: -1,
   needsRetry: false
 };
 
@@ -175,8 +175,8 @@ function queueAfterBfsVisits(graph, visitCount) {
   return queue.filter((id) => order.some((value) => String(value) === String(id)));
 }
 
-function structureForChallenge() {
-  const selected = challengeState.selected;
+function structureForChallengeStep(stepIndex = challengeState.activeStructureIndex) {
+  const selected = challengeState.selected.slice(0, stepIndex + 1);
   if (selected.length === 0) return [];
 
   if (challengeState.mode === "dfs") {
@@ -185,6 +185,10 @@ function structureForChallenge() {
   }
 
   return queueAfterBfsVisits(challengeGraph, selected.length);
+}
+
+function structureForChallenge() {
+  return structureForChallengeStep(challengeState.activeStructureIndex);
 }
 
 function structureName() {
@@ -199,16 +203,46 @@ function displayStructureValue(value) {
   return value === "empty" ? "비어 있음" : value;
 }
 
+function syncStructureSteps() {
+  const selected = challengeState.selected;
+  challengeState.structureSteps = selected.map((node, index) => {
+    const previous = challengeState.structureSteps[index] || {};
+    const sameNode = String(previous.node) === String(node);
+    return {
+      node,
+      guess: sameNode && Array.isArray(previous.guess) ? previous.guess : [],
+      checked: sameNode ? Boolean(previous.checked) : false,
+      correct: sameNode ? Boolean(previous.correct) : false
+    };
+  });
+
+  if (selected.length === 0) {
+    challengeState.activeStructureIndex = -1;
+    challengeState.structurePending = false;
+    return;
+  }
+
+  if (challengeState.activeStructureIndex < 0 || challengeState.activeStructureIndex >= selected.length) {
+    challengeState.activeStructureIndex = selected.length - 1;
+  }
+
+  challengeState.structurePending = challengeState.structureSteps.some((step) => !step.correct);
+}
+
 function resetStructureGuess(message = true) {
-  if (!challengeState.structurePending) {
+  syncStructureSteps();
+  const step = challengeState.structureSteps[challengeState.activeStructureIndex];
+  if (!step) {
     if (message && $("#structureFeedback")) {
       $("#structureFeedback").textContent = "먼저 노드를 하나 선택하세요.";
     }
     return;
   }
-  challengeState.structureGuess = [];
+  step.guess = [];
+  step.checked = false;
+  step.correct = false;
   if (message && $("#structureFeedback")) {
-    $("#structureFeedback").textContent = "순서를 다시 눌러 보세요.";
+    $("#structureFeedback").textContent = `${challengeState.activeStructureIndex + 1}단계 순서를 다시 눌러 보세요.`;
   }
   renderChallenge();
 }
@@ -405,12 +439,15 @@ function resetGuide(mode) {
 }
 
 function renderChallenge() {
+  syncStructureSteps();
   const svg = $("#treeSvg");
   const selected = challengeState.selected;
   const order = orderFor(challengeGraph, challengeState.mode, 1);
   const answerOrder = challengeState.showAnswer ? order : [];
-  const expectedStructure = structureForChallenge();
-  const comparable = selected.length === 0 ? [] : comparableStructure(expectedStructure);
+  const activeIndex = challengeState.activeStructureIndex;
+  const activeStep = challengeState.structureSteps[activeIndex] || null;
+  const activeGuess = activeStep ? activeStep.guess : [];
+  const canEditStructure = Boolean(activeStep) && !challengeState.showAnswer && !challengeState.needsRetry;
   const bankValues = ["empty", ...challengeGraph.nodes.map((node) => String(node.id))];
 
   renderGraph(svg, challengeGraph, {
@@ -441,34 +478,55 @@ function renderChallenge() {
     guide.textContent = "탐색 순서가 달라졌습니다. 처음부터 새로 도전하세요.";
   } else if (selected.length === 0) {
     guide.textContent = "노드를 선택하면 1~10 중 현재 스택 또는 큐에 들어 있는 번호만 골라 순서대로 나열합니다.";
-  } else if (challengeState.structurePending) {
-    guide.textContent = `${selected.length}번째 방문 뒤의 ${structureName()} 상태입니다. 다음 노드는 계속 클릭할 수 있고, 오른쪽에서 현재 상태를 맞혀 볼 수 있습니다.`;
+  } else if (activeStep) {
+    guide.textContent = `${activeIndex + 1}단계, ${activeStep.node}번 방문 뒤의 ${structureName()} 상태입니다. 아래 단계 기록을 눌러 이전 답안도 다시 확인할 수 있습니다.`;
   } else {
-    guide.textContent = "자료 구조 상태까지 확인했습니다. 다음 노드를 선택하세요.";
+    guide.textContent = "확인할 단계를 선택하세요.";
   }
 
-  $("#structureTarget").innerHTML = challengeState.structureGuess.length > 0
-    ? pill(challengeState.structureGuess.map(displayStructureValue))
-    : `<span class="ghost-pill">${challengeState.structurePending ? "현재 들어 있는 번호만 골라 순서대로 채우기" : "대기 중"}</span>`;
+  $("#structureTarget").innerHTML = activeGuess.length > 0
+    ? pill(activeGuess.map(displayStructureValue))
+    : `<span class="ghost-pill">${activeStep ? `${activeIndex + 1}단계에 남아 있는 번호만 순서대로 채우기` : "대기 중"}</span>`;
 
   $("#structureBank").innerHTML = bankValues.map((value) => {
-    const used = challengeState.structureGuess.includes(value);
-    return `<button data-structure-token="${value}" ${used || !challengeState.structurePending ? "disabled" : ""}>${displayStructureValue(value)}</button>`;
+    const used = activeGuess.includes(value);
+    return `<button data-structure-token="${value}" ${used || !canEditStructure ? "disabled" : ""}>${displayStructureValue(value)}</button>`;
   }).join("");
 
-  $("#structureHistory").innerHTML = challengeState.structureHistory.length > 0
-    ? challengeState.structureHistory.map((item, index) => `
-        <div>
-          <b>${index + 1}. ${item.node}번 방문</b>
-          <span>${item.label}: ${item.values.map(displayStructureValue).join(" → ")}</span>
-        </div>
-      `).join("")
+  $("#structureHistory").innerHTML = challengeState.structureSteps.length > 0
+    ? challengeState.structureSteps.map((step, index) => {
+      const guessText = step.guess.length > 0
+        ? step.guess.map(displayStructureValue).join(" → ")
+        : "아직 선택 전";
+      const stateText = step.correct ? "정답" : step.checked ? "다시" : "작성 중";
+      const stateClass = step.correct ? "is-correct" : step.checked ? "is-wrong" : "is-draft";
+      const activeClass = index === activeIndex ? "is-active" : "";
+      return `
+        <button class="${activeClass} ${stateClass}" data-structure-step="${index}" type="button">
+          <b>${index + 1}. ${step.node}번 방문</b>
+          <span>${guessText}</span>
+          <em>${stateText}</em>
+        </button>
+      `;
+    }).join("")
     : `<span class="empty-history">아직 기록된 변화가 없습니다.</span>`;
 
   $$("[data-structure-token]").forEach((button) => {
     button.addEventListener("click", () => {
-      challengeState.structureGuess.push(button.dataset.structureToken);
+      const step = challengeState.structureSteps[challengeState.activeStructureIndex];
+      if (!step) return;
+      step.guess.push(button.dataset.structureToken);
+      step.checked = false;
+      step.correct = false;
       $("#structureFeedback").textContent = "선택한 순서가 맞는지 확인해 보세요.";
+      renderChallenge();
+    });
+  });
+
+  $$("[data-structure-step]").forEach((button) => {
+    button.addEventListener("click", () => {
+      challengeState.activeStructureIndex = Number(button.dataset.structureStep);
+      $("#structureFeedback").textContent = `${challengeState.activeStructureIndex + 1}단계의 ${structureName()} 상태를 확인합니다.`;
       renderChallenge();
     });
   });
@@ -504,8 +562,14 @@ function handleChallengeClick(id) {
   }
 
   challengeState.selected.push(id);
+  challengeState.structureSteps.push({
+    node: id,
+    guess: [],
+    checked: false,
+    correct: false
+  });
+  challengeState.activeStructureIndex = challengeState.structureSteps.length - 1;
   challengeState.structurePending = true;
-  challengeState.structureGuess = [];
   $("#feedback").textContent = `${id}번 선택 완료. 다음 노드를 계속 선택하면서, 오른쪽에서는 현재 ${structureName()} 상태도 맞혀 보세요.`;
   $("#structureFeedback").textContent = "";
   renderChallenge();
@@ -514,9 +578,9 @@ function handleChallengeClick(id) {
 function resetChallenge(message = true) {
   challengeState.selected = [];
   challengeState.showAnswer = false;
-  challengeState.structureGuess = [];
   challengeState.structurePending = false;
-  challengeState.structureHistory = [];
+  challengeState.structureSteps = [];
+  challengeState.activeStructureIndex = -1;
   challengeState.needsRetry = false;
   if (message) {
     $("#feedback").textContent = "1번부터 시작하세요. 노드를 하나 고를 때마다 오른쪽에서 현재 스택 또는 큐 순서도 함께 점검합니다.";
@@ -537,6 +601,7 @@ function setChallengeMode(mode) {
 }
 
 function checkChallenge() {
+  syncStructureSteps();
   const expected = orderFor(challengeGraph, challengeState.mode, 1);
   const actual = challengeState.selected;
 
@@ -551,17 +616,25 @@ function checkChallenge() {
   }
 
   const mismatch = expected.findIndex((id, index) => String(id) !== String(actual[index]));
-  if (mismatch === -1) {
-    $("#feedback").textContent = `정답입니다. ${challengeState.mode.toUpperCase()} 순서는 ${expected.join(" → ")} 입니다.`;
-  } else {
+  if (mismatch !== -1) {
     $("#feedback").textContent = `${mismatch + 1}번째 선택부터 다릅니다. 정답은 ${expected.join(" → ")} 입니다.`;
+    return;
   }
+
+  const uncheckedIndex = challengeState.structureSteps.findIndex((step) => !step.correct);
+  if (uncheckedIndex !== -1) {
+    challengeState.activeStructureIndex = uncheckedIndex;
+    $("#feedback").textContent = `탐색 순서는 맞았습니다. ${uncheckedIndex + 1}단계의 ${structureName()} 상태도 확인해 주세요.`;
+    renderChallenge();
+    return;
+  }
+
+  $("#feedback").textContent = `정답입니다. ${challengeState.mode.toUpperCase()} 순서는 ${expected.join(" → ")} 이고, ${structureName()} 변화도 모두 맞았습니다.`;
 }
 
 function showChallengeAnswer() {
   challengeState.showAnswer = true;
   challengeState.structurePending = false;
-  challengeState.structureGuess = [];
   challengeState.needsRetry = false;
   $("#feedback").textContent = `${challengeState.mode.toUpperCase()} 정답 순서는 ${orderFor(challengeGraph, challengeState.mode, 1).join(" → ")} 입니다.`;
   $("#structureFeedback").textContent = "정답을 본 뒤에는 처음부터 다시 도전할 수 있습니다.";
@@ -569,13 +642,15 @@ function showChallengeAnswer() {
 }
 
 function checkStructureAnswer() {
-  if (!challengeState.structurePending) {
+  syncStructureSteps();
+  const step = challengeState.structureSteps[challengeState.activeStructureIndex];
+  if (!step) {
     $("#structureFeedback").textContent = "먼저 노드를 하나 선택하세요.";
     return;
   }
 
-  const expected = comparableStructure(structureForChallenge());
-  const actual = challengeState.structureGuess;
+  const expected = comparableStructure(structureForChallengeStep(challengeState.activeStructureIndex));
+  const actual = step.guess;
 
   if (actual.length < expected.length) {
     $("#structureFeedback").textContent = `${expected.length - actual.length}개를 더 선택해야 합니다. 현재 들어 있는 번호만 고르세요.`;
@@ -584,26 +659,30 @@ function checkStructureAnswer() {
 
   const isCorrect = actual.length === expected.length && expected.every((value, index) => value === actual[index]);
   if (!isCorrect) {
-    challengeState.structureGuess = [];
-    $("#structureFeedback").textContent = `선택한 번호나 순서가 다릅니다. 1~10 중 현재 ${structureName()}에 들어 있는 번호만 골라 새로 도전하세요.`;
+    step.guess = [];
+    step.checked = true;
+    step.correct = false;
+    $("#structureFeedback").textContent = `${challengeState.activeStructureIndex + 1}단계의 번호나 순서가 다릅니다. 현재 ${structureName()}에 들어 있는 번호만 골라 새로 도전하세요.`;
     renderChallenge();
     return;
   }
 
-  const node = challengeState.selected[challengeState.selected.length - 1];
-  challengeState.structurePending = false;
-  challengeState.structureHistory.push({
-    node,
-    label: structureName(),
-    values: expected
-  });
-  challengeState.structureGuess = [];
+  step.checked = true;
+  step.correct = true;
+  challengeState.structurePending = challengeState.structureSteps.some((item) => !item.correct);
 
   const total = challengeGraph.nodes.length;
-  $("#structureFeedback").textContent = "자료 구조 순서도 정답입니다.";
+  const nextUnchecked = challengeState.structureSteps.findIndex((item) => !item.correct);
+  if (nextUnchecked !== -1) {
+    challengeState.activeStructureIndex = nextUnchecked;
+  }
+  $("#structureFeedback").textContent = `${challengeState.activeStructureIndex + 1}단계 ${structureName()} 순서를 확인하세요.`;
   $("#feedback").textContent = challengeState.selected.length === total
-    ? "모든 노드와 자료 구조 변화를 완성했습니다. 채점하기를 눌러 마무리하세요."
-    : "좋습니다. 다음 노드를 선택하세요.";
+    ? "선택한 단계는 정답입니다. 남은 자료 구조 단계까지 확인한 뒤 채점하기로 마무리하세요."
+    : "좋습니다. 다음 노드를 선택하거나 남은 단계의 자료 구조를 확인하세요.";
+  if (nextUnchecked === -1) {
+    $("#structureFeedback").textContent = "현재까지 선택한 모든 단계의 자료 구조 순서가 정답입니다.";
+  }
   renderChallenge();
 }
 
