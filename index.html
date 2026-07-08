@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>깊이 우선 탐색과 너비 우선 탐색</title>
-  <link rel="stylesheet" href="styles.css?v=lesson-20260708-4">
+  <link rel="stylesheet" href="styles.css?v=lesson-20260708-6">
 </head>
 <body>
   <header class="hero">
@@ -23,18 +23,36 @@
         </div>
       </div>
       <div class="hero-visual" aria-hidden="true">
-        <div class="tree-mini">
-          <span class="dot root">1</span>
-          <span class="dot left">2</span>
-          <span class="dot mid">3</span>
-          <span class="dot right">4</span>
-          <span class="dot leaf-a">5</span>
-          <span class="dot leaf-b">6</span>
-          <span class="dot leaf-c">7</span>
-          <span class="dash d1"></span>
-          <span class="dash d2"></span>
-          <span class="dash d3"></span>
-          <span class="dash d4"></span>
+        <div class="algorithm-visual">
+          <svg viewBox="0 0 320 270" role="img">
+            <rect class="algo-screen" x="26" y="24" width="268" height="190" rx="18"/>
+            <path class="algo-grid" d="M62 70H258M62 112H258M62 154H258M102 48V190M162 48V190M222 48V190"/>
+            <path class="algo-route" d="M72 154C96 110 132 112 158 80S210 50 246 72"/>
+            <g class="algo-node start">
+              <circle cx="72" cy="154" r="18"/>
+              <text x="72" y="160">1</text>
+            </g>
+            <g class="algo-node">
+              <circle cx="128" cy="112" r="18"/>
+              <text x="128" y="118">2</text>
+            </g>
+            <g class="algo-node">
+              <circle cx="158" cy="80" r="18"/>
+              <text x="158" y="86">3</text>
+            </g>
+            <g class="algo-node target">
+              <circle cx="246" cy="72" r="20"/>
+              <text x="246" y="78">?</text>
+            </g>
+            <g class="search-glass">
+              <circle cx="202" cy="144" r="43"/>
+              <path d="M234 176L272 214"/>
+            </g>
+            <rect class="algo-chip" x="66" y="222" width="74" height="28" rx="14"/>
+            <rect class="algo-chip second" x="152" y="222" width="102" height="28" rx="14"/>
+            <text class="algo-label" x="103" y="241">DFS</text>
+            <text class="algo-label" x="203" y="241">BFS 탐색</text>
+          </svg>
         </div>
       </div>
     </div>
@@ -365,7 +383,7 @@
             </div>
             <div class="status-box structure-practice">
               <span id="structureLabel">채점 전</span>
-              <p class="structure-guide" id="structureGuide">노드를 고르면 현재 스택 또는 큐 상태를 맞혀 봅니다.</p>
+              <p class="structure-guide" id="structureGuide">노드를 고르면 1~10 중 현재 스택 또는 큐에 들어 있는 번호만 골라 순서대로 맞혀 봅니다.</p>
               <div class="sequence-target" id="structureTarget" aria-label="현재 자료 구조 순서 선택 결과"></div>
               <div class="sequence-bank" id="structureBank" aria-label="현재 자료 구조 순서 선택"></div>
               <div class="mini-actions">
@@ -375,7 +393,7 @@
               <span class="structure-result" id="structureFeedback"></span>
               <div class="structure-history" id="structureHistory" aria-label="스택과 큐 변화 기록"></div>
             </div>
-            <p class="feedback" id="feedback">1번부터 시작하세요. 노드를 하나 고를 때마다 현재 스택 또는 큐 순서도 함께 맞혀야 다음 노드로 갈 수 있습니다.</p>
+            <p class="feedback" id="feedback">1번부터 시작하세요. 노드를 하나 고를 때마다 1~10 중 현재 스택 또는 큐에 들어 있는 번호만 골라 순서도 함께 맞혀야 다음 노드로 갈 수 있습니다.</p>
             <div class="button-row">
               <button id="resetActivity">처음부터</button>
               <button id="showAnswer">정답 확인</button>
@@ -463,6 +481,6 @@
     </section>
   </main>
 
-  <script src="script.js?v=lesson-20260708-6"></script>
+  <script src="script.js?v=lesson-20260708-7"></script>
 </body>
 </html>

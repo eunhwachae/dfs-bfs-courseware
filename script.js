@@ -188,7 +188,7 @@ function structureForChallenge() {
 }
 
 function structureName() {
-  return challengeState.mode === "dfs" ? "스택 위→아래" : "큐 앞→뒤";
+  return challengeState.mode === "dfs" ? "스택(위→아래)" : "큐(앞→뒤)";
 }
 
 function comparableStructure(values) {
@@ -411,11 +411,7 @@ function renderChallenge() {
   const answerOrder = challengeState.showAnswer ? order : [];
   const expectedStructure = structureForChallenge();
   const comparable = selected.length === 0 ? [] : comparableStructure(expectedStructure);
-  const bankValues = comparable.slice().sort((a, b) => {
-    if (a === "empty") return -1;
-    if (b === "empty") return 1;
-    return Number(a) - Number(b);
-  });
+  const bankValues = ["empty", ...challengeGraph.nodes.map((node) => String(node.id))];
 
   renderGraph(svg, challengeGraph, {
     key: "challenge",
@@ -442,16 +438,16 @@ function renderChallenge() {
   } else if (challengeState.needsRetry) {
     guide.textContent = "탐색 순서가 달라졌습니다. 처음부터 새로 도전하세요.";
   } else if (selected.length === 0) {
-    guide.textContent = "노드를 선택하면 현재 스택 또는 큐의 변화를 직접 나열합니다.";
+    guide.textContent = "노드를 선택하면 1~10 중 현재 스택 또는 큐에 들어 있는 번호만 골라 순서대로 나열합니다.";
   } else if (challengeState.structurePending) {
-    guide.textContent = `${selected.length}번째 방문 뒤의 ${structureName()} 순서를 눌러 완성하세요.`;
+    guide.textContent = `${selected.length}번째 방문 뒤, 1~10 중 현재 ${structureName()}에 들어 있는 번호만 순서대로 고르세요. 비어 있으면 '비어 있음'을 고릅니다.`;
   } else {
     guide.textContent = "자료 구조 상태까지 확인했습니다. 다음 노드를 선택하세요.";
   }
 
   $("#structureTarget").innerHTML = challengeState.structureGuess.length > 0
     ? pill(challengeState.structureGuess.map(displayStructureValue))
-    : `<span class="ghost-pill">${challengeState.structurePending ? "순서를 눌러 채우기" : "대기 중"}</span>`;
+    : `<span class="ghost-pill">${challengeState.structurePending ? "현재 들어 있는 번호만 골라 순서대로 채우기" : "대기 중"}</span>`;
 
   $("#structureBank").innerHTML = bankValues.map((value) => {
     const used = challengeState.structureGuess.includes(value);
@@ -590,14 +586,14 @@ function checkStructureAnswer() {
   const actual = challengeState.structureGuess;
 
   if (actual.length < expected.length) {
-    $("#structureFeedback").textContent = `${expected.length - actual.length}개를 더 선택해야 합니다.`;
+    $("#structureFeedback").textContent = `${expected.length - actual.length}개를 더 선택해야 합니다. 현재 들어 있는 번호만 고르세요.`;
     return;
   }
 
-  const isCorrect = expected.every((value, index) => value === actual[index]);
+  const isCorrect = actual.length === expected.length && expected.every((value, index) => value === actual[index]);
   if (!isCorrect) {
     challengeState.structureGuess = [];
-    $("#structureFeedback").textContent = `순서가 다릅니다. ${structureName()}의 기준을 생각하며 새로 도전하세요.`;
+    $("#structureFeedback").textContent = `선택한 번호나 순서가 다릅니다. 1~10 중 현재 ${structureName()}에 들어 있는 번호만 골라 새로 도전하세요.`;
     renderChallenge();
     return;
   }
