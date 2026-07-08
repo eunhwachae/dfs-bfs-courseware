@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>깊이 우선 탐색과 너비 우선 탐색</title>
+  <link rel="stylesheet" href="styles.css?v=lesson-20260708-4">
+</head>
+<body>
+  <header class="hero">
+    <div class="board">
+      <div class="hero-copy">
+        <p class="brand">INFO SCIENCE COURSEWARE</p>
+        <p class="unit-line">Ⅱ. 자료 처리 · 2. 자료의 정렬과 탐색 · 02. 자료의 탐색</p>
+        <h1>깊이 우선 탐색과<br>너비 우선 탐색</h1>
+        <div class="unit-tags" aria-label="단원 정보">
+          <span>대단원: 자료 처리</span>
+          <span>중단원: 자료의 정렬과 탐색</span>
+          <span>소단원: 자료의 탐색</span>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="tree-mini">
+          <span class="dot root">1</span>
+          <span class="dot left">2</span>
+          <span class="dot mid">3</span>
+          <span class="dot right">4</span>
+          <span class="dot leaf-a">5</span>
+          <span class="dot leaf-b">6</span>
+          <span class="dot leaf-c">7</span>
+          <span class="dash d1"></span>
+          <span class="dash d2"></span>
+          <span class="dash d3"></span>
+          <span class="dash d4"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="learning-goal" aria-labelledby="goal-title">
+    <div>
+      <p class="section-kicker">학습목표</p>
+      <h2 id="goal-title">탐색 알고리즘의 이동 규칙을 눈으로 보고, 직접 설명할 수 있다.</h2>
+    </div>
+    <ol>
+      <li>탐색 알고리즘이 필요한 상황을 말할 수 있다.</li>
+      <li>DFS와 BFS의 방문 순서와 자료 구조를 비교할 수 있다.</li>
+      <li>트리에서 다음에 방문할 정점을 클릭하며 탐색 경로를 완성할 수 있다.</li>
+    </ol>
+  </section>
+
+  <main class="course">
+    <nav class="lesson-nav" aria-label="수업 단계">
+      <button class="nav-step is-active" data-step="0"><span>1</span>전시 학습</button>
+      <button class="nav-step" data-step="1"><span>2</span>탐색 개념</button>
+      <button class="nav-step" data-step="2"><span>3</span>탐색 흐름</button>
+      <button class="nav-step" data-step="3"><span>4</span>DFS 이해</button>
+      <button class="nav-step" data-step="4"><span>5</span>BFS 이해</button>
+      <button class="nav-step" data-step="5"><span>6</span>직접 탐색</button>
+      <button class="nav-step" data-step="6"><span>7</span>정리 학습</button>
+    </nav>
+
+    <section class="stage">
+      <article class="panel is-active" data-panel="0">
+        <div class="panel-heading">
+          <p class="section-kicker">전시 학습</p>
+          <h2>지난 시간에는 자료를 찾는 기본 방법을 배웠습니다.</h2>
+          <p>탐색은 많은 자료 중에서 필요한 자료를 찾는 과정입니다. 자료가 어떻게 놓여 있는지에 따라 알맞은 탐색 방법이 달라집니다.</p>
+        </div>
+
+        <div class="review-grid review-grid-wide">
+          <section class="review-card">
+            <span class="badge">1</span>
+            <h3>순차 탐색</h3>
+            <p>자료를 앞에서부터 하나씩 차례대로 확인합니다. 정렬되어 있지 않아도 사용할 수 있지만, 찾는 값이 뒤에 있으면 시간이 오래 걸립니다.</p>
+          </section>
+          <section class="review-card">
+            <span class="badge">2</span>
+            <h3>이진 탐색</h3>
+            <p>정렬된 자료의 가운데 값을 기준으로 찾을 범위를 반씩 줄입니다. 빠르지만, 자료가 먼저 정렬되어 있어야 합니다.</p>
+          </section>
+          <section class="review-card highlight">
+            <span class="badge">3</span>
+            <h3>오늘의 연결</h3>
+            <p>자료가 트리나 그래프처럼 여러 갈래로 연결되어 있으면 “다음에 어느 길로 갈까?”라는 새로운 규칙이 필요합니다.</p>
+          </section>
+        </div>
+
+        <div class="review-table" aria-label="순차 탐색과 이진 탐색 비교">
+          <div><b>구분</b><b>순차 탐색</b><b>이진 탐색</b></div>
+          <div><span>자료 조건</span><span>정렬되지 않아도 가능</span><span>반드시 정렬 필요</span></div>
+          <div><span>찾는 방법</span><span>처음부터 하나씩 확인</span><span>가운데와 비교하고 범위를 절반으로 줄임</span></div>
+          <div><span>수업 예시</span><span>출석부에서 이름을 앞에서부터 찾기</span><span>사전에서 단어 위치를 좁혀 가기</span></div>
+        </div>
+
+        <div class="warmup-grid">
+          <div class="warmup-card">
+            <strong>확인 1</strong>
+            <span>정렬되지 않은 자료에서도 사용할 수 있는 탐색은?</span>
+            <button class="reveal-answer" type="button">정답 보기</button>
+            <em>순차 탐색</em>
+          </div>
+          <div class="warmup-card">
+            <strong>확인 2</strong>
+            <span>이진 탐색이 빠른 이유는?</span>
+            <button class="reveal-answer" type="button">정답 보기</button>
+            <em>범위를 반씩 줄이기 때문</em>
+          </div>
+          <div class="warmup-card">
+            <strong>오늘의 질문</strong>
+            <span>자료가 여러 갈래로 연결되면 어떤 순서로 방문해야 할까?</span>
+            <button class="reveal-answer" type="button">정답 보기</button>
+            <em>DFS와 BFS</em>
+          </div>
+        </div>
+
+        <div class="question-strip">
+          <strong>수업 질문</strong>
+          <span>미로, 친구 관계, 지하철 노선처럼 길이 여러 갈래일 때 컴퓨터는 어떤 순서로 움직여야 할까요?</span>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="1">
+        <div class="split">
+          <div class="panel-heading">
+            <p class="section-kicker">탐색 개념</p>
+            <h2>탐색은 원하는 자료를 찾기 위해 방문 순서를 정하는 과정입니다.</h2>
+            <p>트리와 그래프에서는 자료가 정점으로 표현되고, 정점 사이의 연결은 간선으로 표현됩니다. 모든 정점을 빠짐없이 방문하려면 “다음 정점을 고르는 규칙”이 필요합니다.</p>
+            <div class="compare-row">
+              <div>
+                <b>DFS</b>
+                <span>한 갈래를 깊게 따라간다</span>
+              </div>
+              <div>
+                <b>BFS</b>
+                <span>같은 깊이를 넓게 훑는다</span>
+              </div>
+            </div>
+          </div>
+          <div class="term-grid" aria-label="탐색 기본 용어">
+            <div><b>정점</b><span>자료나 위치를 나타내는 점</span></div>
+            <div><b>간선</b><span>정점과 정점을 잇는 길</span></div>
+            <div><b>방문</b><span>정점을 한 번 확인하는 일</span></div>
+            <div><b>방문 순서</b><span>어느 정점부터 볼지 정한 규칙</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel visual-panel" data-panel="2">
+        <div class="panel-heading">
+          <p class="section-kicker">탐색 흐름 보기</p>
+          <h2>DFS는 깊이, BFS는 너비가 먼저 보입니다.</h2>
+          <p>아래 그림을 크게 보며 화살표의 이동 방향과 노드 옆 방문 순서를 비교해 보세요.</p>
+        </div>
+        <figure class="motion-card big-picture">
+          <img src="assets/dfs-bfs-animation.svg?v=lesson-20260708-3" alt="DFS와 BFS의 전체 탐색 이동 경로 애니메이션">
+          <figcaption>왼쪽 DFS는 한 갈래를 끝까지 따라가고, 오른쪽 BFS는 가까운 정점부터 같은 깊이를 넓게 방문합니다.</figcaption>
+        </figure>
+        <div class="visual-note-grid">
+          <div><b>화살표</b><span>탐색이 실제로 이동하는 방향</span></div>
+          <div><b>작은 번호</b><span>정점을 처음 방문한 순서</span></div>
+          <div><b>비교 포인트</b><span>DFS는 깊이, BFS는 거리와 단계</span></div>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="3">
+        <div class="subpage is-active" data-subpage="0">
+          <div class="split">
+            <div class="panel-heading">
+              <p class="section-kicker">깊이 우선 탐색 DFS · 1/2</p>
+              <h2>DFS는 한쪽 길을 끝까지 따라가며 탐색합니다.</h2>
+              <p>현재 정점에서 아직 방문하지 않은 이웃이 있으면 그 정점으로 바로 이동합니다. 더 갈 수 없으면 이전 정점으로 되돌아와 다른 길을 살핍니다.</p>
+              <ul class="check-list">
+                <li>핵심 자료 구조: 스택 또는 재귀 호출</li>
+                <li>좋은 비유: 미로에서 한 길을 끝까지 가 보기</li>
+                <li>연습 예제 방문 순서: 1 → 2 → 4 → 5 → 8 → 3 → 6 → 7</li>
+              </ul>
+            </div>
+            <div class="path-board dfs-board" aria-label="DFS 이동 방향 예시">
+              <span>1</span><i></i><span>2</span><i></i><span>4</span>
+              <em>되돌아감</em>
+              <span>5</span><i></i><span>8</span>
+              <em>되돌아감</em>
+              <span>3</span><i></i><span>6</span>
+              <em>되돌아감</em>
+              <span>7</span>
+            </div>
+          </div>
+        </div>
+        <div class="subpage" data-subpage="1">
+          <div class="guide-head">
+            <div>
+              <p class="section-kicker">깊이 우선 탐색 DFS · 2/2</p>
+              <h2>다음에 방문할 노드를 클릭하며 DFS 경로를 따라가 봅시다.</h2>
+              <p>큰 비교 그림과 다른 연습 예제입니다. 안내를 보며 DFS가 왜 “깊이”를 먼저 보는지 확인하세요.</p>
+            </div>
+            <button class="small-action" data-guide-reset="dfs">다시 시작</button>
+          </div>
+          <div class="guided-layout">
+            <section class="tree-zone compact">
+              <svg id="dfsGuideSvg" viewBox="0 0 760 470" role="img" aria-label="DFS 가이드 탐색 트리"></svg>
+            </section>
+            <aside class="control-zone">
+              <div class="status-box next">
+                <span>다음 클릭</span>
+                <strong id="dfsGuideNext">1번</strong>
+              </div>
+              <div class="status-box">
+                <span>방문 순서</span>
+                <div class="pill-list" id="dfsGuideVisited"></div>
+              </div>
+              <div class="status-box">
+                <span>현재 스택</span>
+                <div class="structure-list" id="dfsGuideStructure"></div>
+              </div>
+              <p class="feedback" id="dfsGuideFeedback">1번부터 클릭하세요. DFS는 갈 수 있는 한 깊게 내려갑니다.</p>
+            </aside>
+          </div>
+        </div>
+        <div class="sub-nav" data-subnav>
+          <button data-sub-prev>이전</button>
+          <span data-sub-status>1 / 2</span>
+          <button data-sub-next>다음</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="4">
+        <div class="subpage is-active" data-subpage="0">
+          <div class="split">
+            <div class="panel-heading">
+              <p class="section-kicker">너비 우선 탐색 BFS · 1/2</p>
+              <h2>BFS는 시작점에서 가까운 정점부터 차례대로 넓혀 갑니다.</h2>
+              <p>먼저 발견한 정점을 먼저 처리하기 위해 큐를 사용합니다. 같은 깊이에 있는 정점을 모두 본 뒤 다음 깊이로 내려갑니다.</p>
+              <ul class="check-list">
+                <li>핵심 자료 구조: 큐</li>
+                <li>좋은 비유: 물결이 퍼지듯 가까운 곳부터 확인</li>
+                <li>연습 예제 방문 순서: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8</li>
+              </ul>
+            </div>
+            <div class="level-board" aria-label="BFS 깊이별 방문 예시">
+              <div><b>거리 0</b><span>1</span></div>
+              <div><b>거리 1</b><span>2</span><span>3</span></div>
+              <div><b>거리 2</b><span>4</span><span>5</span><span>6</span><span>7</span></div>
+              <div><b>거리 3</b><span>8</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="subpage" data-subpage="1">
+          <div class="guide-head">
+            <div>
+              <p class="section-kicker">너비 우선 탐색 BFS · 2/2</p>
+              <h2>다음에 방문할 노드를 클릭하며 BFS 경로를 따라가 봅시다.</h2>
+              <p>큰 비교 그림과 다른 연습 예제입니다. 같은 깊이를 모두 방문한 뒤 다음 깊이로 내려가는지 확인하세요.</p>
+            </div>
+            <button class="small-action" data-guide-reset="bfs">다시 시작</button>
+          </div>
+          <div class="guided-layout">
+            <section class="tree-zone compact">
+              <svg id="bfsGuideSvg" viewBox="0 0 760 470" role="img" aria-label="BFS 가이드 탐색 트리"></svg>
+            </section>
+            <aside class="control-zone">
+              <div class="status-box next">
+                <span>다음 클릭</span>
+                <strong id="bfsGuideNext">1번</strong>
+              </div>
+              <div class="status-box">
+                <span>방문 순서</span>
+                <div class="pill-list" id="bfsGuideVisited"></div>
+              </div>
+              <div class="status-box">
+                <span>현재 큐</span>
+                <div class="structure-list" id="bfsGuideStructure"></div>
+              </div>
+              <p class="feedback" id="bfsGuideFeedback">1번부터 클릭하세요. BFS는 가까운 깊이를 먼저 모두 봅니다.</p>
+            </aside>
+          </div>
+        </div>
+        <div class="sub-nav" data-subnav>
+          <button data-sub-prev>이전</button>
+          <span data-sub-status>1 / 2</span>
+          <button data-sub-next>다음</button>
+        </div>
+      </article>
+
+      <article class="panel lab-panel" data-panel="5">
+        <div class="lab-head">
+          <div>
+            <p class="section-kicker">직접 탐색 활동</p>
+            <h2>새로운 예제에서 힌트 없이 탐색 순서를 완성해 보세요.</h2>
+            <p>이번 활동은 다음 노드를 알려주지 않습니다. 선택한 탐색 방법에 맞게 학생이 직접 순서를 판단한 뒤 채점합니다.</p>
+          </div>
+          <div class="mode-toggle" role="group" aria-label="탐색 방식 선택">
+            <button class="is-selected" id="dfsMode">DFS</button>
+            <button id="bfsMode">BFS</button>
+          </div>
+        </div>
+
+        <div class="lab-grid">
+          <section class="tree-zone">
+            <svg id="treeSvg" viewBox="0 0 760 470" role="img" aria-label="힌트 없이 푸는 탐색 도전 트리"></svg>
+          </section>
+          <aside class="control-zone">
+            <div class="status-box next">
+              <span>도전 규칙</span>
+              <strong id="nextNode">1번부터</strong>
+            </div>
+            <div class="status-box">
+              <span>내가 선택한 순서</span>
+              <div class="pill-list" id="visitedList"></div>
+            </div>
+            <div class="status-box">
+              <span id="structureLabel">채점 전</span>
+              <div class="structure-list" id="structureList"></div>
+            </div>
+            <p class="feedback" id="feedback">1번부터 시작해 선택한 탐색 방법에 맞는 방문 순서를 직접 클릭하세요. 다 고른 뒤 채점하세요.</p>
+            <div class="button-row">
+              <button id="resetActivity">처음부터</button>
+              <button id="showAnswer">정답 확인</button>
+              <button id="checkChallenge" class="wide">채점하기</button>
+            </div>
+          </aside>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="6">
+        <div class="panel-heading">
+          <p class="section-kicker">정리 학습</p>
+          <h2>DFS와 BFS를 비교하고, 핵심 개념을 확인해 봅시다.</h2>
+        </div>
+        <div class="summary-table">
+          <div><b>구분</b><b>DFS</b><b>BFS</b></div>
+          <div><span>방향</span><span>깊게 들어가기</span><span>넓게 퍼지기</span></div>
+          <div><span>자료 구조</span><span>스택, 재귀</span><span>큐</span></div>
+          <div><span>활용 느낌</span><span>한 경로를 끝까지 확인</span><span>최단 거리, 단계별 확인</span></div>
+        </div>
+
+        <div class="quiz-header">
+          <div>
+            <p class="section-kicker">정리 퀴즈</p>
+            <h3>6문항 중 몇 문항을 맞혔나요?</h3>
+          </div>
+          <div class="quiz-score">점수 <strong id="quizScore">0 / 6</strong></div>
+        </div>
+
+        <div class="quiz-list" id="quizList">
+          <section class="quiz-card" data-correct="bfs" data-hint="가까운 정점부터 같은 깊이를 먼저 보는 탐색은 BFS입니다.">
+            <p><b>1.</b> 시작점에서 가까운 정점들을 먼저 모두 방문하는 탐색은?</p>
+            <div class="quiz-options">
+              <button data-choice="dfs">DFS</button>
+              <button data-choice="bfs">BFS</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="dfs" data-hint="한 갈래를 끝까지 따라가고 막히면 되돌아오는 탐색은 DFS입니다.">
+            <p><b>2.</b> 미로에서 한 길을 끝까지 따라가다가 막히면 되돌아오는 방식과 가까운 것은?</p>
+            <div class="quiz-options">
+              <button data-choice="dfs">DFS</button>
+              <button data-choice="bfs">BFS</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="stack" data-hint="DFS는 스택 또는 재귀 호출과 관련이 깊습니다.">
+            <p><b>3.</b> DFS의 동작을 설명할 때 가장 잘 어울리는 자료 구조는?</p>
+            <div class="quiz-options">
+              <button data-choice="queue">큐</button>
+              <button data-choice="stack">스택</button>
+              <button data-choice="sort">정렬표</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="queue" data-hint="BFS는 먼저 들어온 정점을 먼저 처리하는 큐를 사용합니다.">
+            <p><b>4.</b> BFS에서 먼저 발견한 정점을 먼저 처리하기 위해 사용하는 자료 구조는?</p>
+            <div class="quiz-options">
+              <button data-choice="stack">스택</button>
+              <button data-choice="queue">큐</button>
+              <button data-choice="tree">트리</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="dfs-order" data-hint="DFS는 1번에서 2번으로 간 뒤 5번, 6번까지 깊게 내려갑니다.">
+            <p><b>5.</b> ‘탐색 흐름 보기’의 큰 비교 그림에서 DFS 방문 순서로 알맞은 것은?</p>
+            <div class="quiz-options">
+              <button data-choice="dfs-order">1 → 2 → 5 → 6 → 3 → 4 → 7 → 10 → 8 → 9</button>
+              <button data-choice="bfs-order">1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="binary" data-hint="이진 탐색은 정렬된 자료에서 범위를 반씩 줄이는 방법입니다.">
+            <p><b>6.</b> 전시 학습 내용입니다. 정렬된 자료에서 가운데 값을 기준으로 범위를 반씩 줄이는 탐색은?</p>
+            <div class="quiz-options">
+              <button data-choice="sequential">순차 탐색</button>
+              <button data-choice="binary">이진 탐색</button>
+              <button data-choice="bfs">너비 우선 탐색</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+        </div>
+        <button class="reset-quiz" id="resetQuiz">퀴즈 다시 풀기</button>
+      </article>
+    </section>
+  </main>
+
+  <script src="script.js?v=lesson-20260708-4"></script>
+</body>
+</html>

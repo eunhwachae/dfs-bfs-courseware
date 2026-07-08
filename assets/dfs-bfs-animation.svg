@@ -1,0 +1,280 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">DFS and BFS complete traversal order</title>
+  <desc id="desc">Two trees compare complete DFS and BFS traversal routes. Each node has its node number and a small badge showing visit order.</desc>
+  <style>
+    :root {
+      --ink: #f7f4ec;
+      --muted: #e7c894;
+      --line: #b57b49;
+      --edge: rgba(247, 244, 236, .54);
+      --board: #1f4c3f;
+      --board-dark: #12342c;
+      --paper: #fff7e4;
+      --dfs: #65f06d;
+      --dfs-soft: #dff8c7;
+      --back: #ffd94f;
+      --bfs: #5bbcff;
+      --bfs-soft: #c9f0ff;
+      --bfs-ring: #79e2d3;
+    }
+
+    @font-face {
+      font-family: "CourseNoto";
+      src: url("fonts/NotoSansKR-VF.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    .bg { fill: var(--board); }
+    .divider { stroke: var(--line); stroke-width: 8; }
+    .title {
+      fill: var(--ink);
+      font-family: "CourseNoto", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: 0;
+      filter: drop-shadow(0 5px 0 rgba(0, 0, 0, .16));
+    }
+    .subtitle {
+      fill: var(--muted);
+      font-family: "CourseNoto", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .edge {
+      stroke: var(--edge);
+      stroke-width: 5;
+      stroke-linecap: round;
+      fill: none;
+    }
+    .route {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 8;
+      opacity: .9;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: draw-route 7s ease-in-out infinite;
+    }
+    .route.dfs { stroke: var(--dfs); }
+    .route.bfs { stroke: var(--bfs); animation-delay: .15s; }
+    .backtrack {
+      fill: none;
+      stroke: var(--back);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 7 9;
+      opacity: .8;
+    }
+    .node {
+      fill: var(--paper);
+      stroke: #f0d091;
+      stroke-width: 4;
+      filter: drop-shadow(0 5px 0 rgba(0, 0, 0, .14));
+    }
+    .node.dfs { fill: var(--dfs-soft); stroke: var(--dfs); }
+    .node.bfs { fill: var(--bfs-soft); stroke: var(--bfs); }
+    .node-text {
+      fill: var(--board-dark);
+      font-family: "CourseNoto", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .order-dot {
+      stroke: var(--paper);
+      stroke-width: 3;
+      filter: drop-shadow(0 4px 5px rgba(31, 43, 56, .25));
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: badge-pop 7s ease-in-out infinite;
+    }
+    .order-dot.dfs { fill: var(--dfs); }
+    .order-dot.bfs { fill: var(--bfs); }
+    .order-text {
+      fill: #12342c;
+      font-family: "CourseNoto", "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+      animation: badge-pop 7s ease-in-out infinite;
+    }
+    .o2 { animation-delay: .35s; }
+    .o3 { animation-delay: .7s; }
+    .o4 { animation-delay: 1.05s; }
+    .o5 { animation-delay: 1.4s; }
+    .o6 { animation-delay: 1.75s; }
+    .o7 { animation-delay: 2.1s; }
+    .o8 { animation-delay: 2.45s; }
+    .o9 { animation-delay: 2.8s; }
+    .o10 { animation-delay: 3.15s; }
+    .arrow {
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      opacity: .95;
+      stroke-dasharray: 8 10;
+      animation: arrow-flow 2s linear infinite;
+    }
+    .arrow.dfs { stroke: var(--dfs); }
+    .arrow.bfs { stroke: var(--bfs); }
+    .level-ring {
+      fill: none;
+      stroke: var(--bfs-ring);
+      stroke-width: 3;
+      stroke-dasharray: 9 10;
+      opacity: .5;
+      animation: ring-breathe 4.8s ease-in-out infinite;
+    }
+    .level-ring.r2 { animation-delay: .6s; }
+    .level-ring.r3 { animation-delay: 1.2s; }
+
+    @keyframes draw-route {
+      0%, 8% { stroke-dashoffset: 1; }
+      58%, 82% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: 1; }
+    }
+    @keyframes badge-pop {
+      0%, 7%, 100% { opacity: .35; transform: scale(.82); }
+      18%, 78% { opacity: 1; transform: scale(1); }
+      92% { opacity: .35; transform: scale(.9); }
+    }
+    @keyframes arrow-flow {
+      from { stroke-dashoffset: 28; }
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes ring-breathe {
+      0%, 100% { opacity: .28; transform: scale(.98); }
+      45%, 70% { opacity: .62; transform: scale(1.02); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .route, .order-dot, .order-text, .arrow, .level-ring {
+        animation: none;
+      }
+      .route { stroke-dashoffset: 0; }
+      .order-dot, .order-text { opacity: 1; transform: scale(1); }
+    }
+  </style>
+
+  <defs>
+    <marker id="arrow-dfs" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#65f06d"/>
+    </marker>
+    <marker id="arrow-bfs" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#5bbcff"/>
+    </marker>
+    <marker id="arrow-back" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L7 4 L1 7 Z" fill="#ffd94f"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="675" rx="26"/>
+  <line class="divider" x1="600" y1="52" x2="600" y2="623"/>
+
+  <g id="dfs-diagram">
+    <text class="title" x="300" y="56" text-anchor="middle">DFS</text>
+    <text class="subtitle" x="300" y="82" text-anchor="middle">깊게 먼저, 막히면 되돌아감</text>
+
+    <path class="edge" d="M300 120 L160 215 M300 120 L300 215 M300 120 L440 215"/>
+    <path class="edge" d="M160 215 L110 335 M160 215 L210 335"/>
+    <path class="edge" d="M440 215 L380 335 M440 215 L460 335 M440 215 L540 335 M380 335 L350 465"/>
+
+    <path class="route dfs" pathLength="1" d="M300 120 L160 215 L110 335 L160 215 L210 335 L160 215 L300 120 L300 215 L300 120 L440 215 L380 335 L350 465 L380 335 L440 215 L460 335 L440 215 L540 335"/>
+    <path class="backtrack" marker-end="url(#arrow-back)" d="M124 322 L146 268"/>
+    <path class="backtrack" marker-end="url(#arrow-back)" d="M204 315 L177 254"/>
+    <path class="backtrack" marker-end="url(#arrow-back)" d="M302 195 L302 151"/>
+    <path class="backtrack" marker-end="url(#arrow-back)" d="M356 448 L373 374"/>
+    <path class="backtrack" marker-end="url(#arrow-back)" d="M457 318 L443 252"/>
+
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M268 142 L191 194"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M145 248 L122 306"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M173 248 L198 306"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M300 151 L300 188"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M332 142 L410 194"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M423 250 L393 305"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M374 368 L358 432"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M445 251 L456 306"/>
+    <path class="arrow dfs" marker-end="url(#arrow-dfs)" d="M461 248 L514 307"/>
+
+    <g>
+      <circle class="node dfs" cx="300" cy="120" r="28"/><text class="node-text" x="300" y="120">1</text>
+      <circle class="node dfs" cx="160" cy="215" r="28"/><text class="node-text" x="160" y="215">2</text>
+      <circle class="node dfs" cx="300" cy="215" r="28"/><text class="node-text" x="300" y="215">3</text>
+      <circle class="node dfs" cx="440" cy="215" r="28"/><text class="node-text" x="440" y="215">4</text>
+      <circle class="node dfs" cx="110" cy="335" r="26"/><text class="node-text" x="110" y="335">5</text>
+      <circle class="node dfs" cx="210" cy="335" r="26"/><text class="node-text" x="210" y="335">6</text>
+      <circle class="node dfs" cx="380" cy="335" r="26"/><text class="node-text" x="380" y="335">7</text>
+      <circle class="node dfs" cx="460" cy="335" r="26"/><text class="node-text" x="460" y="335">8</text>
+      <circle class="node dfs" cx="540" cy="335" r="26"/><text class="node-text" x="540" y="335">9</text>
+      <circle class="node dfs" cx="350" cy="465" r="26"/><text class="node-text" x="350" y="465">10</text>
+    </g>
+
+    <g>
+      <circle class="order-dot dfs o1" cx="326" cy="98" r="14"/><text class="order-text o1" x="326" y="98">1</text>
+      <circle class="order-dot dfs o2" cx="186" cy="193" r="14"/><text class="order-text o2" x="186" y="193">2</text>
+      <circle class="order-dot dfs o3" cx="134" cy="315" r="14"/><text class="order-text o3" x="134" y="315">3</text>
+      <circle class="order-dot dfs o4" cx="234" cy="315" r="14"/><text class="order-text o4" x="234" y="315">4</text>
+      <circle class="order-dot dfs o5" cx="326" cy="193" r="14"/><text class="order-text o5" x="326" y="193">5</text>
+      <circle class="order-dot dfs o6" cx="466" cy="193" r="14"/><text class="order-text o6" x="466" y="193">6</text>
+      <circle class="order-dot dfs o7" cx="404" cy="315" r="14"/><text class="order-text o7" x="404" y="315">7</text>
+      <circle class="order-dot dfs o8" cx="374" cy="445" r="14"/><text class="order-text o8" x="374" y="445">8</text>
+      <circle class="order-dot dfs o9" cx="484" cy="315" r="14"/><text class="order-text o9" x="484" y="315">9</text>
+      <circle class="order-dot dfs o10" cx="566" cy="315" r="15"/><text class="order-text o10" x="566" y="315">10</text>
+    </g>
+  </g>
+
+  <g id="bfs-diagram">
+    <text class="title" x="900" y="56" text-anchor="middle">BFS</text>
+    <text class="subtitle" x="900" y="82" text-anchor="middle">같은 깊이를 먼저, 다음 깊이로</text>
+
+    <ellipse class="level-ring" cx="900" cy="215" rx="180" ry="58"/>
+    <ellipse class="level-ring r2" cx="900" cy="335" rx="246" ry="70"/>
+    <ellipse class="level-ring r3" cx="900" cy="465" rx="78" ry="38"/>
+
+    <path class="edge" d="M900 120 L760 215 M900 120 L900 215 M900 120 L1040 215"/>
+    <path class="edge" d="M760 215 L710 335 M760 215 L810 335"/>
+    <path class="edge" d="M1040 215 L980 335 M1040 215 L1060 335 M1040 215 L1140 335 M980 335 L950 465"/>
+
+    <path class="route bfs" pathLength="1" d="M900 120 L760 215 L900 215 L1040 215 L710 335 L810 335 L980 335 L1060 335 L1140 335 L950 465"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M868 142 L791 194"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M790 215 L868 215"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M930 215 L1008 215"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M1018 246 C942 296 838 328 740 335"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M738 335 L780 335"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M838 335 L950 335"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M1008 335 L1030 335"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M1088 335 L1110 335"/>
+    <path class="arrow bfs" marker-end="url(#arrow-bfs)" d="M1122 360 C1060 420 1010 454 980 462"/>
+
+    <g>
+      <circle class="node bfs" cx="900" cy="120" r="28"/><text class="node-text" x="900" y="120">1</text>
+      <circle class="node bfs" cx="760" cy="215" r="28"/><text class="node-text" x="760" y="215">2</text>
+      <circle class="node bfs" cx="900" cy="215" r="28"/><text class="node-text" x="900" y="215">3</text>
+      <circle class="node bfs" cx="1040" cy="215" r="28"/><text class="node-text" x="1040" y="215">4</text>
+      <circle class="node bfs" cx="710" cy="335" r="26"/><text class="node-text" x="710" y="335">5</text>
+      <circle class="node bfs" cx="810" cy="335" r="26"/><text class="node-text" x="810" y="335">6</text>
+      <circle class="node bfs" cx="980" cy="335" r="26"/><text class="node-text" x="980" y="335">7</text>
+      <circle class="node bfs" cx="1060" cy="335" r="26"/><text class="node-text" x="1060" y="335">8</text>
+      <circle class="node bfs" cx="1140" cy="335" r="26"/><text class="node-text" x="1140" y="335">9</text>
+      <circle class="node bfs" cx="950" cy="465" r="26"/><text class="node-text" x="950" y="465">10</text>
+    </g>
+
+    <g>
+      <circle class="order-dot bfs o1" cx="926" cy="98" r="14"/><text class="order-text o1" x="926" y="98">1</text>
+      <circle class="order-dot bfs o2" cx="786" cy="193" r="14"/><text class="order-text o2" x="786" y="193">2</text>
+      <circle class="order-dot bfs o3" cx="926" cy="193" r="14"/><text class="order-text o3" x="926" y="193">3</text>
+      <circle class="order-dot bfs o4" cx="1066" cy="193" r="14"/><text class="order-text o4" x="1066" y="193">4</text>
+      <circle class="order-dot bfs o5" cx="734" cy="315" r="14"/><text class="order-text o5" x="734" y="315">5</text>
+      <circle class="order-dot bfs o6" cx="834" cy="315" r="14"/><text class="order-text o6" x="834" y="315">6</text>
+      <circle class="order-dot bfs o7" cx="1004" cy="315" r="14"/><text class="order-text o7" x="1004" y="315">7</text>
+      <circle class="order-dot bfs o8" cx="1084" cy="315" r="14"/><text class="order-text o8" x="1084" y="315">8</text>
+      <circle class="order-dot bfs o9" cx="1164" cy="315" r="14"/><text class="order-text o9" x="1164" y="315">9</text>
+      <circle class="order-dot bfs o10" cx="974" cy="445" r="15"/><text class="order-text o10" x="974" y="445">10</text>
+    </g>
+  </g>
+</svg>
