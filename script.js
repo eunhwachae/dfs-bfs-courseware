@@ -424,11 +424,13 @@ function renderChallenge() {
 
   $("#nextNode").textContent = challengeState.showAnswer
     ? "정답 표시"
-    : challengeState.structurePending
-      ? "자료 구조 확인"
-      : challengeState.needsRetry
+    : challengeState.needsRetry
         ? "새로 도전"
-        : "직접 선택";
+        : selected.length === 0
+          ? "1번부터"
+          : selected.length === order.length
+            ? "선택 완료"
+            : "직접 선택";
   $("#visitedList").innerHTML = pill(selected);
   $("#structureLabel").textContent = structureName();
 
@@ -440,7 +442,7 @@ function renderChallenge() {
   } else if (selected.length === 0) {
     guide.textContent = "노드를 선택하면 1~10 중 현재 스택 또는 큐에 들어 있는 번호만 골라 순서대로 나열합니다.";
   } else if (challengeState.structurePending) {
-    guide.textContent = `${selected.length}번째 방문 뒤, 1~10 중 현재 ${structureName()}에 들어 있는 번호만 순서대로 고르세요. 비어 있으면 '비어 있음'을 고릅니다.`;
+    guide.textContent = `${selected.length}번째 방문 뒤의 ${structureName()} 상태입니다. 다음 노드는 계속 클릭할 수 있고, 오른쪽에서 현재 상태를 맞혀 볼 수 있습니다.`;
   } else {
     guide.textContent = "자료 구조 상태까지 확인했습니다. 다음 노드를 선택하세요.";
   }
@@ -482,11 +484,6 @@ function handleChallengeClick(id) {
     return;
   }
 
-  if (challengeState.structurePending) {
-    $("#feedback").textContent = `먼저 현재 ${structureName()} 순서를 맞힌 뒤 다음 노드를 선택하세요.`;
-    return;
-  }
-
   if (challengeState.selected.some((value) => String(value) === String(id))) {
     $("#feedback").textContent = `${id} 노드는 이미 선택했습니다. 다른 노드를 고르세요.`;
     return;
@@ -509,7 +506,7 @@ function handleChallengeClick(id) {
   challengeState.selected.push(id);
   challengeState.structurePending = true;
   challengeState.structureGuess = [];
-  $("#feedback").textContent = `${id}번 선택 완료. 이제 현재 ${structureName()} 순서를 직접 나열해 보세요.`;
+  $("#feedback").textContent = `${id}번 선택 완료. 다음 노드를 계속 선택하면서, 오른쪽에서는 현재 ${structureName()} 상태도 맞혀 보세요.`;
   $("#structureFeedback").textContent = "";
   renderChallenge();
 }
@@ -522,7 +519,7 @@ function resetChallenge(message = true) {
   challengeState.structureHistory = [];
   challengeState.needsRetry = false;
   if (message) {
-    $("#feedback").textContent = "1번부터 시작하세요. 노드를 하나 고를 때마다 현재 스택 또는 큐 순서도 함께 맞혀야 다음 노드로 갈 수 있습니다.";
+    $("#feedback").textContent = "1번부터 시작하세요. 노드를 하나 고를 때마다 오른쪽에서 현재 스택 또는 큐 순서도 함께 점검합니다.";
     $("#structureFeedback").textContent = "";
   }
   renderChallenge();
@@ -545,11 +542,6 @@ function checkChallenge() {
 
   if (challengeState.needsRetry) {
     $("#feedback").textContent = "오답이 있었습니다. 처음부터를 눌러 새로 도전하세요.";
-    return;
-  }
-
-  if (challengeState.structurePending) {
-    $("#feedback").textContent = `현재 ${structureName()} 순서 확인을 마친 뒤 채점하세요.`;
     return;
   }
 
