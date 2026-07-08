@@ -46,7 +46,11 @@ const guidedState = {
 const challengeState = {
   mode: "dfs",
   selected: [],
-  showAnswer: false
+  showAnswer: false,
+  structureGuess: [],
+  structurePending: false,
+  structureHistory: [],
+  needsRetry: false
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -149,6 +153,64 @@ function structureForGuide(mode, selected) {
   }
 
   return queue;
+}
+
+function queueAfterBfsVisits(graph, visitCount) {
+  const order = bfsOrder(graph, 1);
+  const queue = [1];
+  const discovered = new Set(["1"]);
+  let processed = 0;
+
+  while (queue.length > 0 && processed < visitCount) {
+    const current = queue.shift();
+    processed += 1;
+
+    for (const next of sortedNeighbors(graph, current)) {
+      if (discovered.has(String(next))) continue;
+      discovered.add(String(next));
+      queue.push(next);
+    }
+  }
+
+  return queue.filter((id) => order.some((value) => String(value) === String(id)));
+}
+
+function structureForChallenge() {
+  const selected = challengeState.selected;
+  if (selected.length === 0) return [];
+
+  if (challengeState.mode === "dfs") {
+    const current = selected[selected.length - 1];
+    return pathBetween(challengeGraph, 1, current).slice().reverse();
+  }
+
+  return queueAfterBfsVisits(challengeGraph, selected.length);
+}
+
+function structureName() {
+  return challengeState.mode === "dfs" ? "스택 위→아래" : "큐 앞→뒤";
+}
+
+function comparableStructure(values) {
+  return values.length === 0 ? ["empty"] : values.map(String);
+}
+
+function displayStructureValue(value) {
+  return value === "empty" ? "비어 있음" : value;
+}
+
+function resetStructureGuess(message = true) {
+  if (!challengeState.structurePending) {
+    if (message && $("#structureFeedback")) {
+      $("#structureFeedback").textContent = "먼저 노드를 하나 선택하세요.";
+    }
+    return;
+  }
+  challengeState.structureGuess = [];
+  if (message && $("#structureFeedback")) {
+    $("#structureFeedback").textContent = "순서를 다시 눌러 보세요.";
+  }
+  renderChallenge();
 }
 
 function createSvgElement(name, attrs = {}) {
@@ -347,6 +409,13 @@ function renderChallenge() {
   const selected = challengeState.selected;
   const order = orderFor(challengeGraph, challengeState.mode, 1);
   const answerOrder = challengeState.showAnswer ? order : [];
+  const expectedStructure = structureForChallenge();
+  const comparable = selected.length === 0 ? [] : comparableStructure(expectedStructure);
+  const bankValues = comparable.slice().sort((a, b) => {
+    if (a === "empty") return -1;
+    if (b === "empty") return 1;
+    return Number(a) - Number(b);
+  });
 
   renderGraph(svg, challengeGraph, {
     key: "challenge",
@@ -357,15 +426,69 @@ function renderChallenge() {
     nodeClick: handleChallengeClick
   });
 
-  $("#nextNode").textContent = challengeState.showAnswer ? "정답 표시" : "1번부터";
+  $("#nextNode").textContent = challengeState.showAnswer
+    ? "정답 표시"
+    : challengeState.structurePending
+      ? "자료 구조 확인"
+      : challengeState.needsRetry
+        ? "새로 도전"
+        : "직접 선택";
   $("#visitedList").innerHTML = pill(selected);
-  $("#structureLabel").textContent = challengeState.mode === "dfs" ? "DFS 도전" : "BFS 도전";
-  $("#structureList").innerHTML = `<span class="pill">${selected.length} / ${challengeGraph.nodes.length}</span>`;
+  $("#structureLabel").textContent = structureName();
+
+  const guide = $("#structureGuide");
+  if (challengeState.showAnswer) {
+    guide.textContent = "정답 경로를 확인하는 중입니다. 다시 풀려면 처음부터를 누르세요.";
+  } else if (challengeState.needsRetry) {
+    guide.textContent = "탐색 순서가 달라졌습니다. 처음부터 새로 도전하세요.";
+  } else if (selected.length === 0) {
+    guide.textContent = "노드를 선택하면 현재 스택 또는 큐의 변화를 직접 나열합니다.";
+  } else if (challengeState.structurePending) {
+    guide.textContent = `${selected.length}번째 방문 뒤의 ${structureName()} 순서를 눌러 완성하세요.`;
+  } else {
+    guide.textContent = "자료 구조 상태까지 확인했습니다. 다음 노드를 선택하세요.";
+  }
+
+  $("#structureTarget").innerHTML = challengeState.structureGuess.length > 0
+    ? pill(challengeState.structureGuess.map(displayStructureValue))
+    : `<span class="ghost-pill">${challengeState.structurePending ? "순서를 눌러 채우기" : "대기 중"}</span>`;
+
+  $("#structureBank").innerHTML = bankValues.map((value) => {
+    const used = challengeState.structureGuess.includes(value);
+    return `<button data-structure-token="${value}" ${used || !challengeState.structurePending ? "disabled" : ""}>${displayStructureValue(value)}</button>`;
+  }).join("");
+
+  $("#structureHistory").innerHTML = challengeState.structureHistory.length > 0
+    ? challengeState.structureHistory.map((item, index) => `
+        <div>
+          <b>${index + 1}. ${item.node}번 방문</b>
+          <span>${item.label}: ${item.values.map(displayStructureValue).join(" → ")}</span>
+        </div>
+      `).join("")
+    : `<span class="empty-history">아직 기록된 변화가 없습니다.</span>`;
+
+  $$("[data-structure-token]").forEach((button) => {
+    button.addEventListener("click", () => {
+      challengeState.structureGuess.push(button.dataset.structureToken);
+      $("#structureFeedback").textContent = "선택한 순서가 맞는지 확인해 보세요.";
+      renderChallenge();
+    });
+  });
 }
 
 function handleChallengeClick(id) {
   if (challengeState.showAnswer) {
     challengeState.showAnswer = false;
+  }
+
+  if (challengeState.needsRetry) {
+    $("#feedback").textContent = "탐색 순서가 한 번 달라졌습니다. 처음부터를 눌러 새로 도전하세요.";
+    return;
+  }
+
+  if (challengeState.structurePending) {
+    $("#feedback").textContent = `먼저 현재 ${structureName()} 순서를 맞힌 뒤 다음 노드를 선택하세요.`;
+    return;
   }
 
   if (challengeState.selected.some((value) => String(value) === String(id))) {
@@ -378,16 +501,33 @@ function handleChallengeClick(id) {
     return;
   }
 
+  const expected = orderFor(challengeGraph, challengeState.mode, 1)[challengeState.selected.length];
+  if (String(id) !== String(expected)) {
+    challengeState.needsRetry = true;
+    $("#feedback").textContent = `${challengeState.selected.length + 1}번째 선택이 ${challengeState.mode.toUpperCase()} 규칙과 맞지 않습니다. 정답을 바로 보지 말고 처음부터 새로 도전해 보세요.`;
+    $("#structureFeedback").textContent = "새로 도전할 준비가 되면 처음부터를 누르세요.";
+    renderChallenge();
+    return;
+  }
+
   challengeState.selected.push(id);
-  $("#feedback").textContent = `${id} 선택 완료. 다음 노드를 스스로 판단해 보세요.`;
+  challengeState.structurePending = true;
+  challengeState.structureGuess = [];
+  $("#feedback").textContent = `${id}번 선택 완료. 이제 현재 ${structureName()} 순서를 직접 나열해 보세요.`;
+  $("#structureFeedback").textContent = "";
   renderChallenge();
 }
 
 function resetChallenge(message = true) {
   challengeState.selected = [];
   challengeState.showAnswer = false;
+  challengeState.structureGuess = [];
+  challengeState.structurePending = false;
+  challengeState.structureHistory = [];
+  challengeState.needsRetry = false;
   if (message) {
-    $("#feedback").textContent = "1번부터 시작해 선택한 탐색 방법에 맞는 방문 순서를 직접 클릭하세요. 다 고른 뒤 채점하세요.";
+    $("#feedback").textContent = "1번부터 시작하세요. 노드를 하나 고를 때마다 현재 스택 또는 큐 순서도 함께 맞혀야 다음 노드로 갈 수 있습니다.";
+    $("#structureFeedback").textContent = "";
   }
   renderChallenge();
 }
@@ -397,6 +537,7 @@ function setChallengeMode(mode) {
   $("#dfsMode").classList.toggle("is-selected", mode === "dfs");
   $("#bfsMode").classList.toggle("is-selected", mode === "bfs");
   resetChallenge(false);
+  $("#structureFeedback").textContent = "";
   $("#feedback").textContent = mode === "dfs"
     ? "DFS 도전입니다. 1번에서 시작해 한 갈래를 깊게 따라가 보세요."
     : "BFS 도전입니다. 1번에서 시작해 가까운 깊이부터 넓게 방문해 보세요.";
@@ -405,6 +546,16 @@ function setChallengeMode(mode) {
 function checkChallenge() {
   const expected = orderFor(challengeGraph, challengeState.mode, 1);
   const actual = challengeState.selected;
+
+  if (challengeState.needsRetry) {
+    $("#feedback").textContent = "오답이 있었습니다. 처음부터를 눌러 새로 도전하세요.";
+    return;
+  }
+
+  if (challengeState.structurePending) {
+    $("#feedback").textContent = `현재 ${structureName()} 순서 확인을 마친 뒤 채점하세요.`;
+    return;
+  }
 
   if (actual.length < expected.length) {
     $("#feedback").textContent = `아직 ${expected.length - actual.length}개 노드가 남았습니다. 모든 노드를 선택한 뒤 채점하세요.`;
@@ -421,7 +572,50 @@ function checkChallenge() {
 
 function showChallengeAnswer() {
   challengeState.showAnswer = true;
+  challengeState.structurePending = false;
+  challengeState.structureGuess = [];
+  challengeState.needsRetry = false;
   $("#feedback").textContent = `${challengeState.mode.toUpperCase()} 정답 순서는 ${orderFor(challengeGraph, challengeState.mode, 1).join(" → ")} 입니다.`;
+  $("#structureFeedback").textContent = "정답을 본 뒤에는 처음부터 다시 도전할 수 있습니다.";
+  renderChallenge();
+}
+
+function checkStructureAnswer() {
+  if (!challengeState.structurePending) {
+    $("#structureFeedback").textContent = "먼저 노드를 하나 선택하세요.";
+    return;
+  }
+
+  const expected = comparableStructure(structureForChallenge());
+  const actual = challengeState.structureGuess;
+
+  if (actual.length < expected.length) {
+    $("#structureFeedback").textContent = `${expected.length - actual.length}개를 더 선택해야 합니다.`;
+    return;
+  }
+
+  const isCorrect = expected.every((value, index) => value === actual[index]);
+  if (!isCorrect) {
+    challengeState.structureGuess = [];
+    $("#structureFeedback").textContent = `순서가 다릅니다. ${structureName()}의 기준을 생각하며 새로 도전하세요.`;
+    renderChallenge();
+    return;
+  }
+
+  const node = challengeState.selected[challengeState.selected.length - 1];
+  challengeState.structurePending = false;
+  challengeState.structureHistory.push({
+    node,
+    label: structureName(),
+    values: expected
+  });
+  challengeState.structureGuess = [];
+
+  const total = challengeGraph.nodes.length;
+  $("#structureFeedback").textContent = "자료 구조 순서도 정답입니다.";
+  $("#feedback").textContent = challengeState.selected.length === total
+    ? "모든 노드와 자료 구조 변화를 완성했습니다. 채점하기를 눌러 마무리하세요."
+    : "좋습니다. 다음 노드를 선택하세요.";
   renderChallenge();
 }
 
@@ -503,7 +697,7 @@ function setupQuiz() {
         });
         button.classList.add("is-selected", isCorrect ? "is-correct" : "is-wrong");
         card.dataset.solved = isCorrect ? "true" : "false";
-        result.textContent = isCorrect ? "정답입니다." : card.dataset.hint;
+        result.textContent = isCorrect ? "정답입니다." : `${card.dataset.hint} 다른 답으로 다시 도전해 보세요.`;
         updateScore();
       });
     });
@@ -528,6 +722,8 @@ $("#bfsMode").addEventListener("click", () => setChallengeMode("bfs"));
 $("#resetActivity").addEventListener("click", () => resetChallenge());
 $("#showAnswer").addEventListener("click", showChallengeAnswer);
 $("#checkChallenge").addEventListener("click", checkChallenge);
+$("#resetStructure").addEventListener("click", () => resetStructureGuess());
+$("#checkStructure").addEventListener("click", checkStructureAnswer);
 
 $$("[data-guide-reset]").forEach((button) => {
   button.addEventListener("click", () => resetGuide(button.dataset.guideReset));
