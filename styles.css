@@ -67,8 +67,8 @@ p { line-height: 1.7; }
 
 .board {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(390px, .72fr);
-  gap: 34px;
+  grid-template-columns: minmax(0, 1fr) minmax(520px, 1fr);
+  gap: clamp(24px, 3vw, 46px);
   min-height: 370px;
   padding: clamp(24px, 5vw, 54px);
   border: 14px solid var(--wood);
@@ -124,11 +124,12 @@ p { line-height: 1.7; }
 
 .hero-visual {
   display: grid;
-  place-items: center;
+  align-items: center;
+  justify-items: start;
 }
 
 .algorithm-visual {
-  width: min(430px, 100%);
+  width: min(540px, 100%);
   filter: drop-shadow(0 12px 0 rgba(0, 0, 0, .12));
 }
 
@@ -514,7 +515,8 @@ p { line-height: 1.7; }
 
 .motion-card img {
   display: block;
-  width: 100%;
+  width: min(1180px, 100%);
+  margin-inline: auto;
   border-radius: 6px;
   background: var(--board);
 }
@@ -525,8 +527,9 @@ p { line-height: 1.7; }
 }
 
 .big-picture img {
-  max-height: 560px;
+  max-height: none;
   object-fit: contain;
+  object-position: center;
 }
 
 .visual-note-grid {
