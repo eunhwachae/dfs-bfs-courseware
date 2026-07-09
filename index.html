@@ -178,7 +178,7 @@
           <p>아래 그림을 크게 보며 화살표의 이동 방향과 노드 옆 방문 순서를 비교해 보세요.</p>
         </div>
         <figure class="motion-card big-picture">
-          <img src="assets/dfs-bfs-animation.svg?v=lesson-20260709-4" alt="DFS와 BFS의 전체 탐색 이동 경로 애니메이션">
+          <img src="assets/dfs-bfs-animation.svg?v=lesson-20260709-5" alt="DFS와 BFS의 전체 탐색 이동 경로 애니메이션">
           <figcaption>왼쪽 DFS는 한 갈래를 끝까지 따라가고, 오른쪽 BFS는 가까운 정점부터 같은 깊이를 넓게 방문합니다.</figcaption>
         </figure>
         <div class="visual-note-grid">
@@ -194,7 +194,7 @@
             <div class="panel-heading">
               <p class="section-kicker">깊이 우선 탐색 DFS · 1/2</p>
               <h2>DFS는 한쪽 길을 끝까지 따라가며 탐색합니다.</h2>
-              <p>현재 정점에서 아직 방문하지 않은 이웃이 있으면 그 정점으로 바로 이동합니다. 더 갈 수 없으면 이전 정점으로 되돌아와 다른 길을 살핍니다.</p>
+              <p>현재 정점에서 아직 방문하지 않은 이웃이 있으면 그 정점으로 바로 이동합니다. 더 갈 수 없으면 백트래킹으로 이전 정점으로 돌아와 다른 길을 살핍니다.</p>
               <ul class="check-list">
                 <li>
                   핵심 자료 구조:
@@ -219,7 +219,7 @@
                         <text x="32" y="78" font-size="13" font-weight="800" fill="#fff8ea">꺼냄</text>
                         <text x="140" y="136" text-anchor="middle" font-size="14" font-weight="900" fill="#fff8ea">나중에 들어온 것이 먼저 나감</text>
                       </svg>
-                      <span>DFS는 깊이 내려가다 막히면 되돌아와야 하므로, 최근에 지나온 정점을 스택처럼 기억합니다.</span>
+                      <span>DFS는 깊이 내려가다 막히면 백트래킹으로 돌아와야 하므로, 최근에 지나온 정점을 스택처럼 기억합니다.</span>
                     </span>
                   </button>
                   또는 재귀 호출
@@ -230,11 +230,11 @@
             </div>
             <div class="path-board dfs-board" aria-label="DFS 이동 방향 예시">
               <span>1</span><i></i><span>2</span><i></i><span>4</span>
-              <em>되돌아감</em>
+              <em>백트래킹</em>
               <span>5</span><i></i><span>8</span>
-              <em>되돌아감</em>
+              <em>백트래킹</em>
               <span>3</span><i></i><span>6</span>
-              <em>되돌아감</em>
+              <em>백트래킹</em>
               <span>7</span>
             </div>
           </div>
@@ -436,8 +436,8 @@
             </div>
             <span class="quiz-result"></span>
           </section>
-          <section class="quiz-card" data-correct="dfs" data-hint="한 갈래를 끝까지 따라가고 막히면 되돌아오는 탐색은 DFS입니다.">
-            <p><b>2.</b> 미로에서 한 길을 끝까지 따라가다가 막히면 되돌아오는 방식과 가까운 것은?</p>
+          <section class="quiz-card" data-correct="dfs" data-hint="한 갈래를 끝까지 따라가고 막히면 백트래킹으로 돌아오는 탐색은 DFS입니다.">
+            <p><b>2.</b> 미로에서 한 길을 끝까지 따라가다가 막히면 백트래킹으로 돌아오는 방식과 가까운 것은?</p>
             <div class="quiz-options">
               <button data-choice="dfs">DFS</button>
               <button data-choice="bfs">BFS</button>

@@ -178,7 +178,7 @@
 
   <g id="dfs-diagram" transform="translate(-80 42)">
     <text class="title" x="300" y="56" text-anchor="middle">DFS</text>
-    <text class="subtitle" x="300" y="82" text-anchor="middle">깊게 먼저, 막히면 되돌아감</text>
+    <text class="subtitle" x="300" y="82" text-anchor="middle">깊게 먼저, 막히면 백트래킹</text>
 
     <g class="diagram-body" transform="translate(0 54)">
     <path class="edge" d="M300 120 L160 215 M300 120 L300 215 M300 120 L440 215"/>
