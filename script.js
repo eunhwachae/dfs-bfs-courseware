@@ -203,6 +203,14 @@ function displayStructureValue(value) {
   return value === "empty" ? "비어 있음" : value;
 }
 
+function describeWrongChallengeChoice(id, expected, stepNumber) {
+  if (challengeState.mode === "dfs") {
+    return `${stepNumber}번째는 ${expected}번을 선택해야 합니다. DFS는 갈 수 있는 한 한 갈래를 깊게 내려가므로, ${id}번보다 먼저 ${expected}번 방향을 끝까지 확인해야 합니다. 다시 골라 보세요.`;
+  }
+
+  return `${stepNumber}번째는 ${expected}번을 선택해야 합니다. BFS는 먼저 발견한 정점을 큐 앞에서부터 처리하므로, ${id}번보다 먼저 줄 앞에 있는 ${expected}번을 방문해야 합니다. 다시 골라 보세요.`;
+}
+
 function syncStructureSteps() {
   const selected = challengeState.selected;
   challengeState.structureSteps = selected.map((node, index) => {
@@ -477,9 +485,9 @@ function renderChallenge() {
   } else if (challengeState.needsRetry) {
     guide.textContent = "탐색 순서가 달라졌습니다. 처음부터 새로 도전하세요.";
   } else if (selected.length === 0) {
-    guide.textContent = "노드를 선택하면 1~10 중 현재 스택 또는 큐에 들어 있는 번호만 골라 순서대로 나열합니다.";
+    guide.textContent = "먼저 노드를 클릭해 탐색을 이어가세요. 스택 또는 큐 상태는 각 단계마다 나중에 다시 눌러 맞출 수 있습니다.";
   } else if (activeStep) {
-    guide.textContent = `${activeIndex + 1}단계, ${activeStep.node}번 방문 뒤의 ${structureName()} 상태입니다. 아래 단계 기록을 눌러 이전 답안도 다시 확인할 수 있습니다.`;
+    guide.textContent = `${activeIndex + 1}단계, ${activeStep.node}번 방문 뒤의 ${structureName()} 상태입니다. 답을 아직 넣지 않아도 다음 노드 선택은 계속할 수 있습니다.`;
   } else {
     guide.textContent = "확인할 단계를 선택하세요.";
   }
@@ -538,8 +546,7 @@ function handleChallengeClick(id) {
   }
 
   if (challengeState.needsRetry) {
-    $("#feedback").textContent = "탐색 순서가 한 번 달라졌습니다. 처음부터를 눌러 새로 도전하세요.";
-    return;
+    challengeState.needsRetry = false;
   }
 
   if (challengeState.selected.some((value) => String(value) === String(id))) {
@@ -554,9 +561,8 @@ function handleChallengeClick(id) {
 
   const expected = orderFor(challengeGraph, challengeState.mode, 1)[challengeState.selected.length];
   if (String(id) !== String(expected)) {
-    challengeState.needsRetry = true;
-    $("#feedback").textContent = `${challengeState.selected.length + 1}번째 선택이 ${challengeState.mode.toUpperCase()} 규칙과 맞지 않습니다. 정답을 바로 보지 말고 처음부터 새로 도전해 보세요.`;
-    $("#structureFeedback").textContent = "새로 도전할 준비가 되면 처음부터를 누르세요.";
+    $("#feedback").textContent = describeWrongChallengeChoice(id, expected, challengeState.selected.length + 1);
+    $("#structureFeedback").textContent = "오답 노드는 방문 기록에 넣지 않았습니다. 같은 단계에서 다시 선택할 수 있습니다.";
     renderChallenge();
     return;
   }
@@ -570,7 +576,7 @@ function handleChallengeClick(id) {
   });
   challengeState.activeStructureIndex = challengeState.structureSteps.length - 1;
   challengeState.structurePending = true;
-  $("#feedback").textContent = `${id}번 선택 완료. 다음 노드를 계속 선택하면서, 오른쪽에서는 현재 ${structureName()} 상태도 맞혀 보세요.`;
+  $("#feedback").textContent = `${id}번 선택 완료. 다음 노드를 계속 선택해도 되고, 오른쪽에서 현재 ${structureName()} 상태를 먼저 맞혀도 됩니다.`;
   $("#structureFeedback").textContent = "";
   renderChallenge();
 }
@@ -583,7 +589,7 @@ function resetChallenge(message = true) {
   challengeState.activeStructureIndex = -1;
   challengeState.needsRetry = false;
   if (message) {
-    $("#feedback").textContent = "1번부터 시작하세요. 노드를 하나 고를 때마다 오른쪽에서 현재 스택 또는 큐 순서도 함께 점검합니다.";
+    $("#feedback").textContent = "1번부터 시작하세요. 노드를 먼저 이어서 선택하고, 스택 또는 큐 상태는 각 단계마다 나중에 다시 확인할 수 있습니다.";
     $("#structureFeedback").textContent = "";
   }
   renderChallenge();
@@ -596,8 +602,8 @@ function setChallengeMode(mode) {
   resetChallenge(false);
   $("#structureFeedback").textContent = "";
   $("#feedback").textContent = mode === "dfs"
-    ? "DFS 도전입니다. 1번에서 시작해 한 갈래를 깊게 따라가 보세요."
-    : "BFS 도전입니다. 1번에서 시작해 가까운 깊이부터 넓게 방문해 보세요.";
+    ? "DFS 도전입니다. 틀린 노드를 눌러도 이유를 보고 같은 단계에서 다시 고를 수 있습니다."
+    : "BFS 도전입니다. 틀린 노드를 눌러도 큐 순서를 확인하고 같은 단계에서 다시 고를 수 있습니다.";
 }
 
 function checkChallenge() {
