@@ -201,6 +201,12 @@ p { line-height: 1.7; }
   stroke-linecap: round;
 }
 
+.search-glass {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lens-scan 4.6s ease-in-out infinite;
+}
+
 .search-glass path {
   fill: none;
 }
@@ -224,6 +230,18 @@ p { line-height: 1.7; }
 @keyframes route-glow {
   0%, 100% { stroke-dashoffset: 0; opacity: .72; }
   50% { stroke-dashoffset: -26; opacity: 1; }
+}
+
+@keyframes lens-scan {
+  0%, 100% { transform: translate(-4px, -2px) rotate(-1deg); }
+  50% { transform: translate(7px, 3px) rotate(1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .algo-route,
+  .search-glass {
+    animation: none;
+  }
 }
 
 .learning-goal {
