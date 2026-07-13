@@ -642,6 +642,53 @@ p { line-height: 1.7; }
 
 .compare-row span { font-weight: 850; }
 
+.example-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.example-card {
+  display: grid;
+  gap: 8px;
+  min-height: 190px;
+  padding: 18px;
+  border: 3px solid rgba(31, 76, 63, .18);
+  border-radius: 10px;
+  background: #fff4d8;
+  box-shadow: 0 5px 0 rgba(130, 80, 39, .1);
+}
+
+.example-card span {
+  justify-self: start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--cream);
+  background: var(--green);
+  font-family: var(--display-font);
+  font-size: 14px;
+}
+
+.example-card.bfs-example span {
+  background: var(--blue);
+}
+
+.example-card h3 {
+  margin: 0;
+  color: var(--board);
+  font-family: var(--display-font);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.example-card p {
+  margin: 0;
+  color: #50483e;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
 .check-list {
   display: grid;
   gap: 10px;
@@ -826,6 +873,117 @@ p { line-height: 1.7; }
   background: var(--yellow);
   font-style: normal;
   font-weight: 900;
+}
+
+.pseudo-page {
+  display: grid;
+  gap: 20px;
+}
+
+.pseudo-grid {
+  display: grid;
+  grid-template-columns: minmax(460px, 1.35fr) minmax(300px, .65fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.pseudo-card, .pseudo-note {
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff4d8;
+  box-shadow: 0 6px 0 rgba(130, 80, 39, .1);
+}
+
+.pseudo-card {
+  border: 3px solid rgba(31, 76, 63, .2);
+}
+
+.pseudo-card h3, .pseudo-note h3 {
+  margin: 0 0 14px;
+  color: var(--board);
+  font-family: var(--display-font);
+  font-size: 24px;
+}
+
+.pseudo-lines {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pseudo-line;
+}
+
+.pseudo-lines li {
+  display: grid;
+  grid-template-columns: minmax(190px, .72fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(31, 76, 63, .08);
+  counter-increment: pseudo-line;
+}
+
+.pseudo-lines li::before {
+  content: counter(pseudo-line);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--board-dark);
+  background: var(--yellow);
+  font-family: var(--display-font);
+  grid-column: 1 / -1;
+}
+
+.pseudo-lines code {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--cream);
+  background: var(--board);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pseudo-lines span {
+  color: #4f493f;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.pseudo-note {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  color: var(--cream);
+  background: var(--board);
+  box-shadow: inset 0 0 0 5px rgba(255, 248, 234, .08);
+}
+
+.pseudo-note h3 {
+  color: var(--yellow);
+}
+
+.pseudo-note p {
+  margin: 0;
+  color: var(--cream);
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.65;
+}
+
+.pseudo-note b {
+  color: var(--yellow);
+}
+
+.pseudo-note.bfs-note {
+  background: #204b63;
 }
 
 .level-board {
@@ -1353,8 +1511,12 @@ p { line-height: 1.7; }
 }
 
 @media (max-width: 1000px) {
-  .board, .learning-goal, .course, .split, .lab-grid, .guided-layout {
+  .board, .learning-goal, .course, .split, .lab-grid, .guided-layout, .pseudo-grid {
     grid-template-columns: 1fr;
+  }
+
+  .example-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .lesson-nav {
@@ -1367,7 +1529,7 @@ p { line-height: 1.7; }
 
 @media (max-width: 720px) {
   h1 { font-size: 42px; }
-  .review-grid, .summary-table div, .review-table div, .warmup-grid, .term-grid, .visual-note-grid, .quiz-list, .explain-steps { grid-template-columns: 1fr; }
+  .review-grid, .summary-table div, .review-table div, .warmup-grid, .term-grid, .visual-note-grid, .quiz-list, .explain-steps, .example-gallery, .pseudo-lines li { grid-template-columns: 1fr; }
   .question-strip, .lab-head { align-items: stretch; flex-direction: column; }
   .lesson-nav { grid-template-columns: 1fr; }
   .panel { min-height: 0; }
