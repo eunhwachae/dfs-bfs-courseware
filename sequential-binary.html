@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>순차 탐색과 이진 탐색</title>
+  <link rel="stylesheet" href="sequential-binary.css?v=lesson-20260713-1">
+</head>
+<body>
+  <header class="hero">
+    <div class="board">
+      <div class="hero-copy">
+        <p class="brand">INFO SCIENCE COURSEWARE</p>
+        <p class="unit-line">Ⅱ. 자료 처리 · 2. 자료의 정렬과 탐색 · 02. 자료의 탐색</p>
+        <h1>순차 탐색과<br>이진 탐색</h1>
+        <div class="unit-tags" aria-label="단원 정보">
+          <span>대단원: 자료 처리</span>
+          <span>중단원: 자료의 정렬과 탐색</span>
+          <span>소단원: 자료의 탐색</span>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <svg class="search-map" viewBox="0 0 520 350" role="img">
+          <rect class="map-screen" x="20" y="24" width="480" height="250" rx="22"/>
+          <text class="map-title" x="64" y="66">자료 탐색 지도</text>
+          <g class="map-array">
+            <rect x="58" y="104" width="56" height="54" rx="12"/><text x="86" y="138">12</text>
+            <rect x="122" y="104" width="56" height="54" rx="12"/><text x="150" y="138">24</text>
+            <rect x="186" y="104" width="56" height="54" rx="12"/><text x="214" y="138">37</text>
+            <rect x="250" y="104" width="56" height="54" rx="12"/><text x="278" y="138">45</text>
+            <rect x="314" y="104" width="56" height="54" rx="12"/><text x="342" y="138">56</text>
+          </g>
+          <path class="scan-line" d="M72 186H354"/>
+          <path class="half-line" d="M278 90V180M186 205H370"/>
+          <g class="lens">
+            <circle cx="356" cy="176" r="70"/>
+            <path d="M408 228L468 288"/>
+          </g>
+          <rect class="chip seq" x="68" y="292" width="160" height="36" rx="18"/>
+          <rect class="chip bin" x="250" y="292" width="178" height="36" rx="18"/>
+          <text class="chip-label" x="148" y="315">순차: 앞에서부터</text>
+          <text class="chip-label" x="339" y="315">이진: 반씩 줄이기</text>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <section class="learning-goal" aria-labelledby="goal-title">
+    <div>
+      <p class="section-kicker">학습목표</p>
+      <h2 id="goal-title">자료에서 원하는 값을 찾는 두 탐색 방법을 비교하고 설명할 수 있다.</h2>
+    </div>
+    <ol>
+      <li>순차 탐색과 이진 탐색의 탐색 순서를 말할 수 있다.</li>
+      <li>이진 탐색을 사용하기 위한 조건을 설명할 수 있다.</li>
+      <li>배열에서 목표값을 찾기 위해 다음에 비교할 값을 선택할 수 있다.</li>
+    </ol>
+  </section>
+
+  <main class="course">
+    <nav class="lesson-nav" aria-label="수업 단계">
+      <button class="nav-step is-active" data-step="0"><span>1</span>전시 학습</button>
+      <button class="nav-step" data-step="1"><span>2</span>탐색 개념</button>
+      <button class="nav-step" data-step="2"><span>3</span>흐름 비교</button>
+      <button class="nav-step" data-step="3"><span>4</span>순차 이해</button>
+      <button class="nav-step" data-step="4"><span>5</span>이진 이해</button>
+      <button class="nav-step" data-step="5"><span>6</span>직접 탐색</button>
+      <button class="nav-step" data-step="6"><span>7</span>정리 학습</button>
+    </nav>
+
+    <section class="panels">
+      <article class="panel is-active" data-panel="0">
+        <div class="panel-heading">
+          <p class="section-kicker">전시 학습 확인</p>
+          <h2>자료를 찾으려면 먼저 자료가 어떻게 놓였는지 보아야 합니다.</h2>
+          <p>지난 시간에 배운 배열, 인덱스, 정렬의 의미를 떠올리며 탐색을 시작합니다.</p>
+        </div>
+        <div class="review-grid">
+          <button class="review-card" data-reveal>
+            <b>배열</b>
+            <span>여러 값을 순서대로 저장한 자료 구조입니다.</span>
+            <em>클릭해서 답 보기</em>
+          </button>
+          <button class="review-card" data-reveal>
+            <b>인덱스</b>
+            <span>배열에서 값의 위치를 나타내는 번호입니다.</span>
+            <em>클릭해서 답 보기</em>
+          </button>
+          <button class="review-card" data-reveal>
+            <b>정렬</b>
+            <span>자료를 일정한 기준에 따라 순서대로 놓는 것입니다.</span>
+            <em>클릭해서 답 보기</em>
+          </button>
+        </div>
+        <div class="warmup">
+          <h3>생각 열기</h3>
+          <p>번호표가 뒤섞여 있을 때와 작은 번호부터 차례대로 정리되어 있을 때, 37번을 더 빨리 찾는 방법은 어떻게 달라질까요?</p>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="1">
+        <div class="panel-heading">
+          <p class="section-kicker">탐색 개념</p>
+          <h2>탐색은 많은 자료 중에서 원하는 값을 찾는 과정입니다.</h2>
+          <p>자료가 정렬되어 있지 않다면 하나씩 확인해야 하지만, 정렬되어 있다면 중간값과 비교해 범위를 빠르게 줄일 수 있습니다.</p>
+        </div>
+        <div class="concept-grid">
+          <div class="concept-card seq-card">
+            <b>순차 탐색</b>
+            <p>처음 자료부터 차례대로 목표값과 비교합니다. 자료가 정렬되어 있지 않아도 사용할 수 있습니다.</p>
+            <ul>
+              <li>조건: 정렬 필요 없음</li>
+              <li>방법: 앞에서부터 하나씩 비교</li>
+              <li>특징: 단순하지만 자료가 많으면 오래 걸림</li>
+            </ul>
+          </div>
+          <div class="concept-card bin-card">
+            <b>이진 탐색</b>
+            <p>정렬된 자료의 가운데 값과 목표값을 비교하고, 필요 없는 절반을 제외합니다.</p>
+            <ul>
+              <li>조건: 반드시 정렬된 자료</li>
+              <li>방법: 가운데 비교 후 범위를 반으로 줄임</li>
+              <li>특징: 자료가 많을수록 효율이 큼</li>
+            </ul>
+          </div>
+        </div>
+        <div class="summary-table" aria-label="순차 탐색과 이진 탐색 비교">
+          <div><b>구분</b><b>순차 탐색</b><b>이진 탐색</b></div>
+          <div><span>자료 상태</span><span>정렬되지 않아도 됨</span><span>정렬되어 있어야 함</span></div>
+          <div><span>비교 위치</span><span>처음부터 차례대로</span><span>현재 범위의 가운데</span></div>
+          <div><span>범위 변화</span><span>한 칸씩 이동</span><span>절반씩 줄어듦</span></div>
+        </div>
+      </article>
+
+      <article class="panel visual-panel" data-panel="2">
+        <div class="panel-heading">
+          <p class="section-kicker">흐름 비교</p>
+          <h2>순차 탐색은 한 칸씩, 이진 탐색은 절반씩 범위를 줄입니다.</h2>
+          <p>아래 그림을 보며 두 탐색이 비교하는 위치와 남기는 범위가 어떻게 다른지 살펴봅니다.</p>
+        </div>
+        <figure class="motion-card">
+          <svg class="flow-svg" viewBox="0 0 1180 520" role="img" aria-label="순차 탐색과 이진 탐색 흐름 비교">
+            <rect class="flow-bg" x="0" y="0" width="1180" height="520" rx="24"/>
+            <line class="flow-divider" x1="590" y1="62" x2="590" y2="438"/>
+            <text class="flow-title" x="295" y="72" text-anchor="middle">순차 탐색</text>
+            <text class="flow-subtitle" x="295" y="106" text-anchor="middle">앞에서부터 하나씩 비교</text>
+            <text class="flow-title" x="885" y="72" text-anchor="middle">이진 탐색</text>
+            <text class="flow-subtitle" x="885" y="106" text-anchor="middle">가운데에서 시작해 절반씩 제외</text>
+
+            <g class="seq-flow">
+              <g class="flow-row">
+                <rect x="68" y="190" width="58" height="58" rx="12"/><text x="97" y="226">14</text>
+                <rect x="136" y="190" width="58" height="58" rx="12"/><text x="165" y="226">7</text>
+                <rect x="204" y="190" width="58" height="58" rx="12"/><text x="233" y="226">21</text>
+                <rect x="272" y="190" width="58" height="58" rx="12"/><text x="301" y="226">3</text>
+                <rect class="target-cell" x="340" y="190" width="58" height="58" rx="12"/><text x="369" y="226">18</text>
+                <rect x="408" y="190" width="58" height="58" rx="12"/><text x="437" y="226">9</text>
+                <rect x="476" y="190" width="58" height="58" rx="12"/><text x="505" y="226">25</text>
+              </g>
+              <path class="flow-arrow scan-a" d="M96 286H365"/>
+              <circle class="flow-pointer" cx="96" cy="286" r="13"/>
+              <text class="flow-note" x="298" y="348" text-anchor="middle">18을 찾을 때까지 14 → 7 → 21 → 3 → 18 순서로 비교</text>
+            </g>
+
+            <g class="bin-flow">
+              <g class="flow-row">
+                <rect x="650" y="190" width="58" height="58" rx="12"/><text x="679" y="226">3</text>
+                <rect x="718" y="190" width="58" height="58" rx="12"/><text x="747" y="226">7</text>
+                <rect x="786" y="190" width="58" height="58" rx="12"/><text x="815" y="226">9</text>
+                <rect x="854" y="190" width="58" height="58" rx="12"/><text x="883" y="226">12</text>
+                <rect class="mid-cell" x="922" y="190" width="58" height="58" rx="12"/><text x="951" y="226">14</text>
+                <rect class="target-cell" x="990" y="190" width="58" height="58" rx="12"/><text x="1019" y="226">18</text>
+                <rect x="1058" y="190" width="58" height="58" rx="12"/><text x="1087" y="226">21</text>
+              </g>
+              <path class="range-line first" d="M650 286H1116"/>
+              <path class="range-line second" d="M990 324H1116"/>
+              <path class="range-line third" d="M990 362H1048"/>
+              <text class="flow-note" x="885" y="420" text-anchor="middle">14보다 크므로 오른쪽만 남기고, 다시 가운데를 비교합니다.</text>
+            </g>
+          </svg>
+          <figcaption>순차 탐색은 비교 횟수가 한 칸씩 늘고, 이진 탐색은 정렬된 범위를 절반씩 줄입니다.</figcaption>
+        </figure>
+      </article>
+
+      <article class="panel" data-panel="3">
+        <div class="guided-layout">
+          <div class="panel-heading">
+            <p class="section-kicker">순차 탐색 이해</p>
+            <h2>목표값을 찾을 때까지 앞에서부터 차례대로 확인합니다.</h2>
+            <p>아래 배열에서 목표값 <b>18</b>을 찾으려면 어떤 값을 먼저 비교해야 할까요? 올바른 순서대로 값을 클릭해 보세요.</p>
+            <div class="rule-box">
+              <b>순차 탐색 규칙</b>
+              <span>현재 위치의 값과 목표값을 비교하고, 다르면 바로 다음 칸으로 이동합니다.</span>
+            </div>
+          </div>
+          <div class="activity-card">
+            <div class="activity-head">
+              <span>목표값</span>
+              <strong>18</strong>
+            </div>
+            <div class="array-board" id="seqArray" aria-label="순차 탐색 배열"></div>
+            <div class="trace-box">
+              <span>내가 비교한 순서</span>
+              <div class="pill-list" id="seqTrace"></div>
+            </div>
+            <p class="feedback" id="seqFeedback">가장 왼쪽 값부터 클릭하세요.</p>
+            <button class="small-action" id="seqReset">순차 탐색 다시 하기</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="4">
+        <div class="guided-layout">
+          <div class="panel-heading">
+            <p class="section-kicker">이진 탐색 이해</p>
+            <h2>정렬된 자료에서 가운데 값을 비교하고 범위를 반씩 줄입니다.</h2>
+            <p>아래 정렬된 배열에서 목표값 <b>18</b>을 찾습니다. 현재 범위의 가운데 값을 차례대로 클릭해 보세요.</p>
+            <div class="rule-box">
+              <b>이진 탐색 조건</b>
+              <span>자료가 오름차순 또는 내림차순으로 정렬되어 있어야 합니다.</span>
+            </div>
+          </div>
+          <div class="activity-card">
+            <div class="activity-head">
+              <span>목표값</span>
+              <strong>18</strong>
+            </div>
+            <div class="range-status" id="binRange">현재 범위: 전체</div>
+            <div class="array-board sorted" id="binArray" aria-label="이진 탐색 배열"></div>
+            <div class="trace-box">
+              <span>내가 비교한 순서</span>
+              <div class="pill-list" id="binTrace"></div>
+            </div>
+            <p class="feedback" id="binFeedback">현재 범위의 가운데 값부터 클릭하세요.</p>
+            <button class="small-action" id="binReset">이진 탐색 다시 하기</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel lab-panel" data-panel="5">
+        <div class="lab-head">
+          <div>
+            <p class="section-kicker">직접 탐색 활동</p>
+            <h2>탐색 방법을 고르고 목표값을 찾아 봅니다.</h2>
+            <p>순차 탐색은 앞에서부터, 이진 탐색은 가운데부터 비교합니다. 틀리면 처음부터 다시 도전할 수 있습니다.</p>
+          </div>
+          <div class="mode-toggle" aria-label="탐색 방법 선택">
+            <button class="is-selected" id="challengeSeq">순차 탐색</button>
+            <button id="challengeBin">이진 탐색</button>
+          </div>
+        </div>
+        <div class="lab-grid">
+          <div class="challenge-board">
+            <div class="challenge-status">
+              <div><span>목표값</span><strong id="challengeTarget">19</strong></div>
+              <div><span>비교 횟수</span><strong id="challengeCount">0</strong></div>
+            </div>
+            <div class="array-board challenge" id="challengeArray" aria-label="직접 탐색 배열"></div>
+          </div>
+          <div class="challenge-panel">
+            <div class="trace-box">
+              <span>내가 비교한 순서</span>
+              <div class="pill-list" id="challengeTrace"></div>
+            </div>
+            <div class="range-status" id="challengeRange">순차 탐색은 앞에서부터 한 칸씩 이동합니다.</div>
+            <p class="feedback" id="challengeFeedback">첫 번째 비교할 값을 선택하세요.</p>
+            <div class="button-row">
+              <button id="challengeReset">처음부터</button>
+              <button id="challengeAnswer">정답 확인</button>
+              <button id="challengeCheck">채점하기</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="6">
+        <div class="panel-heading">
+          <p class="section-kicker">정리 학습</p>
+          <h2>두 탐색 방법의 조건과 순서를 점검합니다.</h2>
+          <p>정답이 아니면 다른 답으로 다시 도전할 수 있습니다.</p>
+        </div>
+        <div class="quiz-header">
+          <button class="reset-quiz" id="resetQuiz">퀴즈 다시 풀기</button>
+          <div class="quiz-score">점수 <strong id="quizScore">0 / 8</strong></div>
+        </div>
+        <div class="quiz-list" id="quizList">
+          <section class="quiz-card" data-correct="sequential" data-hint="순차 탐색은 처음부터 끝까지 차례대로 비교합니다.">
+            <p><b>1.</b> 자료를 앞에서부터 하나씩 비교하는 탐색은?</p>
+            <div class="quiz-options">
+              <button data-choice="sequential">순차 탐색</button>
+              <button data-choice="binary">이진 탐색</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="sorted" data-hint="이진 탐색은 가운데 값을 기준으로 범위를 줄이므로 자료가 정렬되어 있어야 합니다.">
+            <p><b>2.</b> 이진 탐색을 사용하기 위해 반드시 필요한 조건은?</p>
+            <div class="quiz-options">
+              <button data-choice="any">자료가 많아야 한다</button>
+              <button data-choice="sorted">자료가 정렬되어 있어야 한다</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="middle" data-hint="이진 탐색은 현재 범위의 가운데 값을 먼저 비교합니다.">
+            <p><b>3.</b> 이진 탐색에서 먼저 비교하는 위치는?</p>
+            <div class="quiz-options">
+              <button data-choice="first">가장 앞</button>
+              <button data-choice="middle">가운데</button>
+              <button data-choice="last">가장 뒤</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="half" data-hint="이진 탐색은 비교할 때마다 필요 없는 절반을 제외합니다.">
+            <p><b>4.</b> 이진 탐색의 큰 장점은?</p>
+            <div class="quiz-options">
+              <button data-choice="half">범위를 절반씩 줄인다</button>
+              <button data-choice="random">아무 위치나 고른다</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="possible" data-hint="순차 탐색은 정렬되지 않은 자료에서도 사용할 수 있습니다.">
+            <p><b>5.</b> 정렬되지 않은 자료에서도 사용할 수 있는 탐색은?</p>
+            <div class="quiz-options">
+              <button data-choice="possible">순차 탐색</button>
+              <button data-choice="impossible">이진 탐색</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="14-21-18" data-hint="정렬된 배열 [3, 7, 9, 12, 14, 18, 21, 25, 30]에서 18을 찾을 때 14, 21, 18 순서로 비교합니다.">
+            <p><b>6.</b> 이진 탐색으로 18을 찾을 때 알맞은 비교 순서는?</p>
+            <div class="quiz-options">
+              <button data-choice="3-7-9">3 → 7 → 9</button>
+              <button data-choice="14-21-18">14 → 21 → 18</button>
+              <button data-choice="30-25-21">30 → 25 → 21</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="many" data-hint="정렬된 큰 자료에서는 이진 탐색이 비교 횟수를 크게 줄일 수 있습니다.">
+            <p><b>7.</b> 정렬된 자료가 아주 많을 때 더 효율적인 탐색은?</p>
+            <div class="quiz-options">
+              <button data-choice="many">이진 탐색</button>
+              <button data-choice="few">순차 탐색</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+          <section class="quiz-card" data-correct="not-found" data-hint="순차 탐색은 끝까지 비교해도 목표값이 없으면 탐색 실패입니다.">
+            <p><b>8.</b> 순차 탐색에서 마지막 자료까지 비교했는데 목표값이 없으면?</p>
+            <div class="quiz-options">
+              <button data-choice="continue">다시 처음으로 돌아간다</button>
+              <button data-choice="not-found">탐색 실패로 판단한다</button>
+            </div>
+            <span class="quiz-result"></span>
+          </section>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="sequential-binary.js?v=lesson-20260713-1"></script>
+</body>
+</html>
