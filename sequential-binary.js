@@ -24,7 +24,7 @@ const challenges = {
   binary: {
     array: [4, 9, 12, 17, 23, 28, 31, 37, 45, 52],
     target: 31,
-    intro: "이진 탐색은 현재 범위의 가운데 값을 비교합니다."
+    intro: "이진 탐색은 현재 범위 안의 값을 비교하고, 목표값이 있을 수 없는 쪽을 제외합니다."
   }
 };
 
@@ -32,7 +32,8 @@ const challengeState = {
   mode: "sequential",
   selected: [],
   showAnswer: false,
-  needsRetry: false
+  needsRetry: false,
+  done: false
 };
 
 function pill(values) {
@@ -63,6 +64,42 @@ function binarySteps(array, target) {
   }
 
   return steps;
+}
+
+function binaryStateFromSelections(array, target, selections) {
+  let low = 0;
+  let high = array.length - 1;
+  let foundIndex = -1;
+  const history = [];
+
+  for (const index of selections) {
+    if (index < low || index > high) {
+      return { low, high, foundIndex, done: false, history, invalidIndex: index };
+    }
+
+    const value = array[index];
+    history.push({ low, high, index, value });
+
+    if (value === target) {
+      foundIndex = index;
+      return { low: index, high: index, foundIndex, done: true, history };
+    }
+
+    if (value < target) low = index + 1;
+    else high = index - 1;
+  }
+
+  return { low, high, foundIndex, done: low > high, history };
+}
+
+function recommendedMiddle(range) {
+  if (!range || range.low > range.high) return null;
+  return Math.floor((range.low + range.high) / 2);
+}
+
+function describeRange(range) {
+  if (!range || range.low > range.high) return "탐색할 범위가 없습니다.";
+  return `현재 범위: ${range.low}번 ~ ${range.high}번`;
 }
 
 function orderFor(mode, array, target) {
@@ -155,44 +192,53 @@ function resetSeqGuide() {
 }
 
 function renderBinGuide() {
-  const steps = binarySteps(binGuide.array, binGuide.target);
-  const current = binGuide.done ? steps[steps.length - 1] : steps[binGuide.selected.length];
-  const nextIndex = binGuide.done ? null : current?.mid;
-  const foundIndex = binGuide.done ? binGuide.array.indexOf(binGuide.target) : -1;
+  const range = binaryStateFromSelections(binGuide.array, binGuide.target, binGuide.selected);
+  const nextIndex = binGuide.done ? null : recommendedMiddle(range);
+  const foundIndex = range.foundIndex;
 
   renderArray($("#binArray"), binGuide.array, {
     selected: binGuide.selected,
     foundIndex,
-    range: current,
+    range,
     nextIndex,
     disabled: binGuide.done,
     onClick: handleBinClick
   });
 
   $("#binTrace").innerHTML = pill(binGuide.selected.map((index) => binGuide.array[index]));
-  $("#binRange").textContent = current
-    ? `현재 범위: ${current.low}번 ~ ${current.high}번, 가운데는 ${current.mid}번`
-    : "탐색할 범위가 없습니다.";
+  $("#binRange").textContent = binGuide.done
+    ? `찾은 위치: ${foundIndex}번`
+    : `${describeRange(range)}${nextIndex === null ? "" : `, 추천 가운데: ${binGuide.array[nextIndex]} (${nextIndex}번)`}`;
 }
 
 function handleBinClick(index) {
   if (binGuide.done) return;
-  const steps = binarySteps(binGuide.array, binGuide.target);
-  const step = steps[binGuide.selected.length];
+  const range = binaryStateFromSelections(binGuide.array, binGuide.target, binGuide.selected);
+  const middle = recommendedMiddle(range);
 
-  if (!step || index !== step.mid) {
-    $("#binFeedback").textContent = `현재 범위의 가운데 값은 ${binGuide.array[step.mid]}입니다. 가운데를 먼저 비교하세요.`;
+  if (index < range.low || index > range.high) {
+    $("#binFeedback").textContent = "이미 제외된 범위입니다. 현재 남아 있는 범위 안에서 선택하세요.";
+    return;
+  }
+
+  if (binGuide.selected.includes(index)) {
+    $("#binFeedback").textContent = "이미 비교한 값입니다. 아직 남아 있는 다른 값을 선택하세요.";
     return;
   }
 
   binGuide.selected.push(index);
-  if (step.value === binGuide.target) {
+  const value = binGuide.array[index];
+  const prefix = index === middle
+    ? "가운데 값을 비교했습니다."
+    : `가운데 값은 ${binGuide.array[middle]}이지만, 선택한 ${value}와 비교해도 범위는 줄어듭니다.`;
+
+  if (value === binGuide.target) {
     binGuide.done = true;
     $("#binFeedback").textContent = `찾았습니다. ${binGuide.selected.length}번 비교해서 ${binGuide.target}을(를) 발견했습니다.`;
-  } else if (step.value < binGuide.target) {
-    $("#binFeedback").textContent = `${step.value}보다 목표값이 큽니다. 오른쪽 절반만 남깁니다.`;
+  } else if (value < binGuide.target) {
+    $("#binFeedback").textContent = `${prefix} ${value}보다 목표값이 크므로 오른쪽 범위만 남깁니다.`;
   } else {
-    $("#binFeedback").textContent = `${step.value}보다 목표값이 작습니다. 왼쪽 절반만 남깁니다.`;
+    $("#binFeedback").textContent = `${prefix} ${value}보다 목표값이 작으므로 왼쪽 범위만 남깁니다.`;
   }
 
   renderBinGuide();
@@ -201,7 +247,7 @@ function handleBinClick(index) {
 function resetBinGuide() {
   binGuide.selected = [];
   binGuide.done = false;
-  $("#binFeedback").textContent = "현재 범위의 가운데 값부터 클릭하세요.";
+  $("#binFeedback").textContent = "현재 범위 안의 값을 클릭하세요. 가운데를 선택하면 가장 빠르게 줄어듭니다.";
   renderBinGuide();
 }
 
@@ -212,17 +258,26 @@ function activeChallenge() {
 function renderChallenge() {
   const challenge = activeChallenge();
   const order = orderFor(challengeState.mode, challenge.array, challenge.target);
-  const answerSelected = challengeState.showAnswer ? order : challengeState.selected;
-  const foundIndex = answerSelected.length === order.length ? order[order.length - 1] : -1;
-  const range = challengeState.mode === "binary"
-    ? currentBinaryRange(challenge.array, challenge.target, challengeState.selected.length)
+  const binaryState = challengeState.mode === "binary"
+    ? binaryStateFromSelections(challenge.array, challenge.target, challengeState.selected)
     : null;
+  const answerSelected = challengeState.showAnswer ? order : challengeState.selected;
+  const foundIndex = challengeState.showAnswer
+    ? order[order.length - 1]
+    : challengeState.mode === "binary"
+      ? binaryState.foundIndex
+      : answerSelected.length === order.length ? order[order.length - 1] : -1;
+  const range = challengeState.mode === "binary"
+    ? binaryState
+    : null;
+  const middle = recommendedMiddle(range);
 
   renderArray($("#challengeArray"), challenge.array, {
     selected: answerSelected,
     foundIndex,
     range,
-    disabled: challengeState.showAnswer || challengeState.needsRetry,
+    nextIndex: challengeState.mode === "binary" && !challengeState.done ? middle : null,
+    disabled: challengeState.showAnswer || challengeState.needsRetry || challengeState.done,
     onClick: handleChallengeClick
   });
 
@@ -230,13 +285,20 @@ function renderChallenge() {
   $("#challengeCount").textContent = challengeState.showAnswer ? order.length : challengeState.selected.length;
   $("#challengeTrace").innerHTML = pill(answerSelected.map((index) => challenge.array[index]));
   $("#challengeRange").textContent = challengeState.showAnswer
-    ? `정답 비교 순서: ${order.map((index) => challenge.array[index]).join(" → ")}`
+    ? `${challengeState.mode === "binary" ? "가운데를 고른 예시" : "정답 비교 순서"}: ${order.map((index) => challenge.array[index]).join(" → ")}`
     : challengeState.mode === "binary" && range
-      ? `현재 범위: ${range.low}번 ~ ${range.high}번`
+      ? challengeState.done
+        ? `찾은 위치: ${foundIndex}번`
+        : `${describeRange(range)}${middle === null ? "" : `, 추천 가운데: ${challenge.array[middle]} (${middle}번)`}`
       : challenge.intro;
 }
 
 function handleChallengeClick(index) {
+  if (challengeState.done) {
+    $("#challengeFeedback").textContent = "탐색이 완료되었습니다. 처음부터를 누르면 다시 도전할 수 있습니다.";
+    return;
+  }
+
   if (challengeState.needsRetry) {
     $("#challengeFeedback").textContent = "순서가 한 번 달라졌습니다. 처음부터를 눌러 다시 도전하세요.";
     return;
@@ -244,12 +306,41 @@ function handleChallengeClick(index) {
 
   const challenge = activeChallenge();
   const order = orderFor(challengeState.mode, challenge.array, challenge.target);
-  const expected = order[challengeState.selected.length];
 
   if (challengeState.selected.includes(index)) {
     $("#challengeFeedback").textContent = "이미 비교한 값입니다. 다음 비교할 값을 선택하세요.";
     return;
   }
+
+  if (challengeState.mode === "binary") {
+    const range = binaryStateFromSelections(challenge.array, challenge.target, challengeState.selected);
+    const middle = recommendedMiddle(range);
+
+    if (index < range.low || index > range.high) {
+      $("#challengeFeedback").textContent = "이미 제외된 범위입니다. 현재 남아 있는 범위 안에서 비교할 값을 선택하세요.";
+      return;
+    }
+
+    challengeState.selected.push(index);
+    const value = challenge.array[index];
+    const prefix = index === middle
+      ? "가운데 값을 골라 범위를 크게 줄였습니다."
+      : `가운데 값은 ${challenge.array[middle]}이지만, 선택한 ${value}도 비교 기준이 될 수 있습니다.`;
+
+    if (value === challenge.target) {
+      challengeState.done = true;
+      $("#challengeFeedback").textContent = `정답입니다. ${challengeState.selected.length}번 비교해서 ${challenge.target}을(를) 찾았습니다.`;
+    } else if (value < challenge.target) {
+      $("#challengeFeedback").textContent = `${prefix} ${value}보다 목표값이 크므로 오른쪽 범위로 이동합니다.`;
+    } else {
+      $("#challengeFeedback").textContent = `${prefix} ${value}보다 목표값이 작으므로 왼쪽 범위로 이동합니다.`;
+    }
+
+    renderChallenge();
+    return;
+  }
+
+  const expected = order[challengeState.selected.length];
 
   if (index !== expected) {
     challengeState.needsRetry = true;
@@ -261,6 +352,7 @@ function handleChallengeClick(index) {
   challengeState.selected.push(index);
   const value = challenge.array[index];
   if (value === challenge.target) {
+    challengeState.done = true;
     $("#challengeFeedback").textContent = `정답입니다. ${challengeState.selected.length}번 비교해서 ${challenge.target}을(를) 찾았습니다.`;
   } else if (challengeState.mode === "binary") {
     $("#challengeFeedback").textContent = value < challenge.target
@@ -277,10 +369,11 @@ function setChallengeMode(mode) {
   challengeState.selected = [];
   challengeState.showAnswer = false;
   challengeState.needsRetry = false;
+  challengeState.done = false;
   $("#challengeSeq").classList.toggle("is-selected", mode === "sequential");
   $("#challengeBin").classList.toggle("is-selected", mode === "binary");
   $("#challengeFeedback").textContent = mode === "binary"
-    ? "이진 탐색입니다. 현재 범위의 가운데 값을 선택하세요."
+    ? "이진 탐색입니다. 현재 범위 안의 값을 선택하세요. 가운데를 고르면 가장 효율적입니다."
     : "순차 탐색입니다. 첫 번째 비교할 값을 선택하세요.";
   renderChallenge();
 }
@@ -289,8 +382,9 @@ function resetChallenge() {
   challengeState.selected = [];
   challengeState.showAnswer = false;
   challengeState.needsRetry = false;
+  challengeState.done = false;
   $("#challengeFeedback").textContent = challengeState.mode === "binary"
-    ? "이진 탐색입니다. 현재 범위의 가운데 값을 선택하세요."
+    ? "이진 탐색입니다. 현재 범위 안의 값을 선택하세요. 가운데를 고르면 가장 효율적입니다."
     : "순차 탐색입니다. 첫 번째 비교할 값을 선택하세요.";
   renderChallenge();
 }
@@ -298,15 +392,32 @@ function resetChallenge() {
 function showChallengeAnswer() {
   challengeState.showAnswer = true;
   challengeState.needsRetry = false;
+  challengeState.done = false;
   const challenge = activeChallenge();
   const order = orderFor(challengeState.mode, challenge.array, challenge.target);
-  $("#challengeFeedback").textContent = `정답 비교 순서는 ${order.map((index) => challenge.array[index]).join(" → ")} 입니다.`;
+  $("#challengeFeedback").textContent = challengeState.mode === "binary"
+    ? `가운데를 선택했을 때 가장 짧은 예시 순서는 ${order.map((index) => challenge.array[index]).join(" → ")} 입니다.`
+    : `정답 비교 순서는 ${order.map((index) => challenge.array[index]).join(" → ")} 입니다.`;
   renderChallenge();
 }
 
 function checkChallenge() {
   const challenge = activeChallenge();
   const order = orderFor(challengeState.mode, challenge.array, challenge.target);
+
+  if (challengeState.mode === "binary") {
+    const state = binaryStateFromSelections(challenge.array, challenge.target, challengeState.selected);
+    const selectedValues = challengeState.selected.map((index) => challenge.array[index]);
+
+    if (state.foundIndex !== -1) {
+      $("#challengeFeedback").textContent = `완성했습니다. 비교 순서는 ${selectedValues.join(" → ")} 입니다. 가운데를 고르면 ${order.map((index) => challenge.array[index]).join(" → ")}처럼 더 짧아질 수 있습니다.`;
+      return;
+    }
+
+    $("#challengeFeedback").textContent = `${describeRange(state)} 안에서 다음 비교할 값을 선택해 목표값을 끝까지 찾아 보세요.`;
+    return;
+  }
+
   const correct = order.length === challengeState.selected.length
     && order.every((index, step) => index === challengeState.selected[step]);
 
